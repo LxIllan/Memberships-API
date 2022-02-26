@@ -31,11 +31,6 @@ const userSchema = mongoose.Schema({
         required: true
     },
     salt: String,
-    createdAt: {
-        type: Date,
-        default: Date.now
-    },
-    updatedAt: Date,
     photo: {
         data: Buffer,
         contentType: String
@@ -44,6 +39,8 @@ const userSchema = mongoose.Schema({
         data: String,
         default: ''
     }
+}, {
+    timestamps: true
 });
 
 // Virtual field

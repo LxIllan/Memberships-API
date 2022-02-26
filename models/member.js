@@ -32,12 +32,9 @@ const memberSchema = mongoose.Schema({
             date: {type: Date, default: Date.now},
             membership : {type: ObjectId, ref: 'Membership'}
         }
-    ],
-    createdAt: {
-        type: Date,
-        default: Date.now
-    },
-    updatedAt: Date
+    ]
+}, {
+    timestamps: true
 });
 
 module.exports = mongoose.model('Member', memberSchema);
