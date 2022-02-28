@@ -5,9 +5,8 @@ const _ = require("lodash");
 require("dotenv").config();
 
 /*
- * @desc    Sing up an receptionist
+ * @desc    Sing up a receptionist
  * @route   POST /signup
- * @access  Public
 */
 exports.signUp = async(req, res) => {
     const userExists = await User.findOne({
@@ -28,12 +27,10 @@ exports.signUp = async(req, res) => {
 /*
  * @desc    Sing in
  * @route   POST /signin
- * @access  Public
 */
 exports.signIn = (req, res) => {
     console.log(req.body.data)
     const { email, password } = req.body.data;
-    console.log(email)
     // find user with email
     User.findOne({ email: email.toLowerCase() }, (err, user) => {
         // if there is a error or not user
@@ -62,7 +59,6 @@ exports.signIn = (req, res) => {
 /*
  * @desc    Sing out
  * @route   get /signout
- * @access  Public
 */
 exports.signOut = (req, res) => {
     res.clearCookie("t");
@@ -72,7 +68,6 @@ exports.signOut = (req, res) => {
 /*
  * @desc    Send an email to reset their password
  * @route   PUT /forgot-password
- * @access  Public
 */
 exports.forgotPassword = (req, res) => {
     if (!req.body) {
@@ -121,7 +116,6 @@ exports.forgotPassword = (req, res) => {
 /*
  * @desc    Reset password
  * @route   PUT /reset-password
- * @access  Public
 */
 exports.resetPassword = (req, res) => {	
     const { newPassword, resetPasswordLink } = req.body;
