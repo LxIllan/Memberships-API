@@ -24,6 +24,11 @@ exports.memberById = (req, res, next, id) => {
         });
 };
 
+
+/*
+ * @desc    Get a member by code
+ * @route   GET /members/code/:code
+*/
 exports.getMemberByCode = (req, res) => {
     if (/\d/.test(req.params.code)) {
         Member.findOne({ code : req.params.code })
@@ -39,7 +44,7 @@ exports.getMemberByCode = (req, res) => {
 };
 
 /*
- * @desc    Get a member
+ * @desc    Get a member by id
  * @route   GET /members/:memberId
 */
 exports.getMember = (req, res) => {

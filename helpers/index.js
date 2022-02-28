@@ -1,5 +1,9 @@
 const nodeMailer = require("nodemailer");
 
+/*
+ * @desc    Sends email to the specified email addresses.
+ * @param {object} emailData - Object that contains subject, body and email addresses.
+*/
 exports.sendEmail = (emailData) => {
     const transporter = nodeMailer.createTransport({
         host: "smtp.hostinger.mx",
@@ -17,15 +21,26 @@ exports.sendEmail = (emailData) => {
         .catch((err) => console.log(`Problem sending email: ${err}`));
 };
 
+/*
+ * @desc    Adds weeks, months to a date.
+ * @param {Date} date - Date to be added time.
+ * @param {number} months - Number of months to be added.
+ * @param {number} weeks - Number of weeks to be added.
+*/
 exports.addTimeToDate = (date, months, weeks) => {
-    date.setMonth(date.getMonth() + months);
+    date.setMonth(date.getMonth() + months)
     // There are 7 days in a week
-    date.setDate(date.getDate() + weeks * 7);
+    date.setDate(date.getDate() + weeks * 7)
     // Set the last hour of the day, so member can train on his last day
-    date.setHours(23, 59, 59);
-    return date;
+    date.setHours(23, 59, 59)
+    return date
 };
 
+/*
+ * @desc    Checks if a member is on schedule.
+ * @param {number} startHour - Minimum range value.
+ * @param {number} endHour - Maximum range value.
+*/
 exports.isMemberOnSchedule = (startHour, endHour) => {
     if (startHour === undefined && endHour == undefined) {
         return true
@@ -35,6 +50,10 @@ exports.isMemberOnSchedule = (startHour, endHour) => {
     }
 }
 
+/*
+ * @desc    Checks if a member has an active membership.
+ * @param {Date} endMembership - End date of a member's membership.
+*/
 exports.isMemberActive = (endMembership) => {
     let endMembershipDate = new Date(endMembership);
     let today = new Date();
@@ -43,6 +62,11 @@ exports.isMemberActive = (endMembership) => {
     return today <= endMembershipDate;
 };
 
+/*
+ * @desc    Returns the difference between the current date and the end of a membership.
+ * @param {Date} today - Initial date.
+ * @param {Date} endMembership - End date.
+*/
 exports.daysDiff = (today, endMembership) => {
     let endMembershipDate = new Date(endMembership);
     endMembershipDate.setHours(0, 0, 0, 0);
@@ -52,6 +76,10 @@ exports.daysDiff = (today, endMembership) => {
     return diffDays;
 }
 
+/*
+ * @desc    Creates an unique code to members.
+ ? Code is four random numbers.
+*/
 exports.createCode = () => {
     let code = '';
     for (let i = 0; i < 4; i++) {
