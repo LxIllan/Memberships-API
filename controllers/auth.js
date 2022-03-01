@@ -1,6 +1,8 @@
 const jwt = require("jsonwebtoken");
 const expressJWT = require("express-jwt");
 const User = require("../models/user");
+const {validationResult } = require('express-validator');
+const {sendEmail} = require('../helpers')
 const _ = require("lodash");
 require("dotenv").config();
 
@@ -9,8 +11,14 @@ require("dotenv").config();
  * @route   POST /signup
 */
 exports.signUp = async(req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ error: errors.array().map(e => e.msg) });
+    }
+
+    req.body.email = req.body.email.toLowerCase();
     const userExists = await User.findOne({
-        email: req.body.email.toLowerCase(),
+        email: req.body.email
     });
     if (userExists) {
         return res.status(403).json({
@@ -18,8 +26,8 @@ exports.signUp = async(req, res) => {
         });
     }
     const user = await new User(req.body);
-    /* Save email in lower case */
-    user.email = req.body.email.toLowerCase();
+    
+    user.role = 'admin';
     await user.save();
     res.json({ message: "Signup success! Please login." });
 };
@@ -29,11 +37,15 @@ exports.signUp = async(req, res) => {
  * @route   POST /signin
 */
 exports.signIn = (req, res) => {
-    console.log(req.body.data)
-    const { email, password } = req.body.data;
-    // find user with email
-    User.findOne({ email: email.toLowerCase() }, (err, user) => {
-        // if there is a error or not user
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ error: errors.array().map(e => e.msg) });
+    }
+
+    const { email, password } = req.body;
+    email = email.toLowerCase();
+
+    User.findOne({ email }, (err, user) => {
         if (err || !user) {
             return res.status(401).json({
                 error: "User with that email does not exist. Please sing in",
@@ -48,6 +60,7 @@ exports.signIn = (req, res) => {
 
         // generate a token with user id and secret
         const token = jwt.sign({ _id: user._id, role: user.role }, process.env.JWT_SECRET_KEY);
+        
         // persist the token as 't' with expiry date
         res.cookie("t", token, { expire: new Date() + 9999 });
 
@@ -58,7 +71,7 @@ exports.signIn = (req, res) => {
 
 /*
  * @desc    Sing out
- * @route   get /signout
+ * @route   GET /signout
 */
 exports.signOut = (req, res) => {
     res.clearCookie("t");
@@ -70,11 +83,9 @@ exports.signOut = (req, res) => {
  * @route   PUT /forgot-password
 */
 exports.forgotPassword = (req, res) => {
-    if (!req.body) {
-        return res.status(400).json({ message: "No request body" });
-    }
-    if (!req.body.email) {
-        return res.status(400).json({ message: "No Email in request body" });
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ error: errors.array().map(e => e.msg) });
     }
 
     const { email } = req.body;
@@ -97,7 +108,7 @@ exports.forgotPassword = (req, res) => {
             to: email,
             subject: "Password Reset Instructions",
             text: `Please use the following link to reset your password: ${process.env.CLIENT_URL}/reset-password/${token}`,
-            html: `<p>Please use the following link to reset your password:</p> <p>${process.env.CLIENT_URL}/reset-password/${token}</p>`,
+            html: `<p>Please use the following link to reset your password:</p> <a href="${process.env.CLIENT_URL}/reset-password/${token}">${process.env.CLIENT_URL}/reset-password/${token}</a>`
         };
 
         return user.updateOne({ resetPasswordLink: token }, (err, success) => {
@@ -118,8 +129,12 @@ exports.forgotPassword = (req, res) => {
  * @route   PUT /reset-password
 */
 exports.resetPassword = (req, res) => {	
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ error: errors.array().map(e => e.msg) });
+    }
+
     const { newPassword, resetPasswordLink } = req.body;
-    console.log(req.body);
     User.findOne({ resetPasswordLink }, (err, user) => {
         if (err || !user)
             return res.status(401).json({
