@@ -1,15 +1,21 @@
 const User = require('../models/user');
 const jwt = require("jsonwebtoken");
 const formidable = require('formidable');
+const {validationResult } = require('express-validator')
 const fs = require('fs');
 const _ = require('lodash');
-const { sendEmail } = require("../helpers");
+const { handleErrors, sendEmail } = require("../helpers");
 require("dotenv").config();
 
 /*
  * @desc    Get a user by id, every time param '/:userId' is called
 */
 exports.userById = (req, res, next, id) => {
+    const mongoose = require("mongoose");
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(404).json({ error: `${id} is not a valid userId` });
+    }
+
     User.findById(id)
         .exec((err, user) => {
             if ((err) || !(user)) {
@@ -61,6 +67,11 @@ exports.getUsers = (req, res) => {
  ! This endpoint does not sign up admin users
 */
 exports.registerUser = async (req, res) => {
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ error: errors.array().map(e => e.msg) })
+    }
+    
     const userExists = await User.findOne({email: req.body.email.toLowerCase() });
     if (userExists) {
         return res.status(403).json({
@@ -94,11 +105,13 @@ exports.registerUser = async (req, res) => {
 /*
  * @desc    Update an user
  * @route   PUT /users/:userId
+ TODO: Validate incoming form.
 */
 exports.updateUser = (req, res) => {
     let form = new formidable.IncomingForm();
     form.keepExtensions = true;
     form.parse(req, async (err, fields, files) => {
+        console.log(fields)
         if (err) {
             return res.status(400).json({error: "Photo could not be uploaded."});
         }
