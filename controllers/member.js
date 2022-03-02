@@ -1,16 +1,20 @@
 const Member = require('../models/member');
 const Receipt = require('../models/receipt');
 const formidable = require('formidable');
-const _ = require('lodash')
+const _ = require('lodash');
+const { validationResult } = require("express-validator");
 const fs = require('fs');
 const {addTimeToDate, isMemberActive, daysDiff, sendEmail, createCode, isMemberOnSchedule} = require('../helpers/index');
 const Membership = require('../models/membership');
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 
 /*
  * @desc    Get a member by id, every time param '/:memberId' is called
 */
 exports.memberById = (req, res, next, id) => {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(404).json({ error: `${id} is not a valid membershipId` });
+    }
     Member.findById(id)
         .populate('membership')
         .populate('payments', {path: 'membership', sort: {date:-1}})
@@ -30,13 +34,22 @@ exports.memberById = (req, res, next, id) => {
  * @route   GET /members/code/:code
 */
 exports.getMemberByCode = (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ error: errors.array().map((e) => e.msg) });
+    }
     if (/\d/.test(req.params.code)) {
         Member.findOne({ code : req.params.code })
+            .populate('membership')
+            .populate('payments', {path: 'membership', sort: {date:-1}})
+            .populate('payments.membership', '_id membership')
             .exec((err, member) => {
                 if ((err) || !(member)) {
                     return res.status(404).json({ error: "Member not found" });
                 }
-                return res.status(200).json(member._id);
+                member.photo = undefined;
+                console.log(member)
+                return res.status(200).json(member);
             });
     } else {
         return res.status(400).json({ error: `${req.body.code} is not a valid code.` });
@@ -55,6 +68,7 @@ exports.getMember = (req, res) => {
  * @desc    Sing up a member
  * @route   POST /members
  ! Every member must have a unique email and code
+ TODO: Validate incoming form.
 */
 exports.registerMember = async (req, res) => {
     let form = new formidable.IncomingForm();
@@ -140,7 +154,12 @@ exports.getMemberPhoto = (req, res, next) => {
  * @desc    Get all members
  * @route   GET /members
 */
-exports.getAllMembers = (req, res) => {
+exports.getMembers = (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ error: errors.array().map((e) => e.msg) });
+    }
+
     Member.find((err, members) => {
         if (err) {
             return res.status(400).json({ error : err});
@@ -150,15 +169,20 @@ exports.getAllMembers = (req, res) => {
 }
 
 /*
- * @desc    Send notice by email to all active members
- * @route   PUT /members/sendEmail
+ * @desc    Send notification by email to all active members
+ * @route   PUT /members/send-notification
 */
-exports.sendEmail = (req, res) => {
+exports.sendNotification = (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ error: errors.array().map((e) => e.msg) });
+    }
+
     const emailData = {
         from: "mailer@syss.tech",
-        subject: req.body.data.subject,
-        text: req.body.data.body,
-        html: `<p>${req.body.data.body}</p>`
+        subject: req.body.subject,
+        text: req.body.body,
+        html: `<p>${req.body.body}</p>`
     };
 
     Member.find({endMembership: {$gte : new Date()}}, (err, members) => {
@@ -210,8 +234,13 @@ exports.sendEmailEndMembership = () => {
  * @route   PUT /members/assistance
  ! Member must be active and on time to get assistance.
 */
-exports.setAssistance = (req, res) => { 
-    Member.findById(req.body.data.memberId)
+exports.setAssistance = (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ error: errors.array().map((e) => e.msg) });
+    }
+
+    Member.findById(req.body.memberId)
         .populate('payments', 'membership')
         .populate('membership', 'membership specialHours')
         .populate('payments.membership', '_id membership')
@@ -243,9 +272,15 @@ exports.setAssistance = (req, res) => {
  * @desc    Set assistance to member
  * @route   PUT /members/assistance
  ? Members can pay even if their memberships has not ended.
+ TODO: Fix req.body.date
 */
-exports.payMembership = (req, res) => {    
-    Member.findById(req.body.data.memberId)
+exports.payMembership = (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ error: errors.array().map((e) => e.msg) });
+    }
+
+    Member.findById(req.body.memberId)
         .populate('payments', 'membership')
         .populate('membership', 'membership')
         .populate('payments.membership', '_id membership')
@@ -253,7 +288,7 @@ exports.payMembership = (req, res) => {
             if ((err) || !(member)) {
                 return res.status(404).json({ error: "Member not found" });
             }
-            const membership = await Membership.findById(req.body.data.membership);
+            const membership = await Membership.findById(req.body.membership);
             if (isMemberActive(member.endMembership)) {
                 member.endMembership = addTimeToDate(new Date(member.endMembership), membership.months, membership.weeks);
             } else {
@@ -279,7 +314,7 @@ exports.payMembership = (req, res) => {
                     membership: membership.membership,
                     price: membership.price,
                     boughtBy: member,
-                    soldBy: new mongoose.mongo.ObjectId(req.body.data.userId),
+                    soldBy: new mongoose.mongo.ObjectId(req.body.userId),
                     date: Date.now()
                 });
                 receipt.save((err, result) => {
@@ -296,6 +331,7 @@ exports.payMembership = (req, res) => {
 /*
  * @desc    Update a member
  * @route   PUT /members/:memberId
+ TODO: Validate incoming form.
  ! Membership cannot be updated here.
 */
 exports.updateMember = (req, res) => {
