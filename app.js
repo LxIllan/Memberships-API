@@ -26,6 +26,7 @@ app.use('/', require('./routes/user'));
 app.use('/', require('./routes/member'));
 app.use('/', require('./routes/membership'));
 app.use('/', require('./routes/property'));
+app.use('/', require('./routes/receipt'));
 
 app.use((err, req, res, next) => {
     console.log("middleware unauthorizedError");

@@ -160,12 +160,21 @@ exports.getMembers = (req, res) => {
         return res.status(400).json({ error: errors.array().map((e) => e.msg) });
     }
 
-    Member.find((err, members) => {
+    const page = req.query.page || 1;
+    const limit = req.query.limit || 10;
+    const skip = (page - 1) * limit;
+
+
+    Member.find()
+    .sort({ name: 1 })
+    .skip(skip)
+    .limit(limit)
+    .select('name lastName code endMembership').exec((err, members) => {
         if (err) {
             return res.status(400).json({ error : err});
         }
         res.status(200).json(members);
-    }).select('name lastName code endMembership');
+    });
 }
 
 /*
@@ -275,11 +284,14 @@ exports.setAssistance = (req, res) => {
  TODO: Fix req.body.date
 */
 exports.payMembership = (req, res) => {
+    console.log(req.body)
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ error: errors.array().map((e) => e.msg) });
     }
 
+    req.body.date = new Date(req.body.date).toUTCString();
+    console.log(req.body.date)
     Member.findById(req.body.memberId)
         .populate('payments', 'membership')
         .populate('membership', 'membership')
@@ -292,7 +304,7 @@ exports.payMembership = (req, res) => {
             if (isMemberActive(member.endMembership)) {
                 member.endMembership = addTimeToDate(new Date(member.endMembership), membership.months, membership.weeks);
             } else {
-                member.endMembership = addTimeToDate(new Date, membership.months, membership.weeks);
+                member.endMembership = addTimeToDate(new Date(req.body.date), membership.months, membership.weeks);
             }
             member.membership = membership;
             member.payments.push({date: Date.now(), membership});       
@@ -301,8 +313,8 @@ exports.payMembership = (req, res) => {
                 from: "mailer@syss.tech",
                 to: member.email,
                 subject: "{memberships_place} Receipt",
-                text: `You have paid ${membership.membership} which ends on ${member.endMembership}`,
-                html: `You have paid ${membership.membership} which ends on ${member.endMembership}</p>`
+                text: `You have paid ${membership.membership} which ends on ${member.endMembership.toUTCString()}`,
+                html: `<p>You have paid ${membership.membership} which ends on ${member.endMembership.toUTCString()}</p>`
             };
 
             member.save((err, member) => {

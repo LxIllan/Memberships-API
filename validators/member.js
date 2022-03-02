@@ -4,8 +4,8 @@ const { body, param, query } = require('express-validator');
  * @route   GET /members
 */
 exports.getMembers = [
-    query('page', 'Page must be a number.').isNumeric().optional(),
-    query('limit', 'Limit must be a number.').isNumeric().optional()
+    query('page', 'Page must be a number.').isNumeric().optional().toInt(),
+    query('limit', 'Limit must be a number.').isNumeric().optional().toInt()
 ]
 
 /*

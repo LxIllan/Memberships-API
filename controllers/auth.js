@@ -43,9 +43,8 @@ exports.signIn = (req, res) => {
     }
 
     const { email, password } = req.body;
-    email = email.toLowerCase();
 
-    User.findOne({ email }, (err, user) => {
+    User.findOne({ email : email.toLowerCase()}, (err, user) => {
         if (err || !user) {
             return res.status(401).json({
                 error: "User with that email does not exist. Please sing in",
