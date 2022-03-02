@@ -1,4 +1,5 @@
 node_modules/
+tests/
 .env
 test.http
 package-lock.json
