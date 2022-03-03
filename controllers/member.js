@@ -4,14 +4,8 @@ const formidable = require("formidable");
 const _ = require("lodash");
 const { validationResult } = require("express-validator");
 const fs = require("fs");
-const {
-    addTimeToDate,
-    isMemberActive,
-    daysDiff,
-    sendEmail,
-    createCode,
-    isMemberOnSchedule,
-} = require("../helpers/index");
+const { sendEmail, createCode } = require("../helpers/index");
+const { addTimeToDate, isMemberActive, daysDiff, isMemberOnSchedule } = require("../helpers/dates");
 const Membership = require("../models/membership");
 const mongoose = require("mongoose");
 
@@ -315,7 +309,7 @@ exports.payMembership = (req, res) => {
                 );
             } else {
                 member.endMembership = addTimeToDate(
-                    new Date(req.body.date + ' 00:00:00'),
+                    new Date(req.body.date + " 00:00:00"),
                     membership.months,
                     membership.weeks
                 );
