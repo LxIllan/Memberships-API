@@ -290,7 +290,6 @@ exports.setAssistance = (req, res) => {
  * @desc    Set assistance to member
  * @route   PUT /members/assistance
  ? Members can pay even if their memberships has not ended.
- TODO: Fix req.body.date
 */
 exports.payMembership = (req, res) => {
     console.log(req.body);
@@ -299,8 +298,6 @@ exports.payMembership = (req, res) => {
         return res.status(400).json({ error: errors.array().map((e) => e.msg) });
     }
 
-    req.body.date = new Date(req.body.date).toUTCString();
-    console.log(req.body.date);
     Member.findById(req.body.memberId)
         .populate("payments", "membership")
         .populate("membership", "membership")
@@ -318,7 +315,7 @@ exports.payMembership = (req, res) => {
                 );
             } else {
                 member.endMembership = addTimeToDate(
-                    new Date(req.body.date),
+                    new Date(req.body.date + ' 00:00:00'),
                     membership.months,
                     membership.weeks
                 );

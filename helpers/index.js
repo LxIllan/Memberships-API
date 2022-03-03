@@ -29,7 +29,7 @@ exports.sendEmail = (emailData) => {
 */
 exports.addTimeToDate = (date, months, weeks) => {
     date.setMonth(date.getMonth() + months)
-    // There are 7 days in a week
+    // There are 7 days in a week, so multiply weeks by 7.
     date.setDate(date.getDate() + weeks * 7)
     // Set the last hour of the day, so member can train on his last day
     date.setHours(23, 59, 59)
