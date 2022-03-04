@@ -153,6 +153,7 @@ exports.getMemberPhoto = (req, res, next) => {
 /*
  * @desc    Get all members
  * @route   GET /members
+ ? For the moment it searches by name or last name.
  */
 exports.getMembers = (req, res) => {
     const errors = validationResult(req);
@@ -163,8 +164,14 @@ exports.getMembers = (req, res) => {
     const page = req.query.page || 1;
     const limit = req.query.limit || 10;
     const skip = (page - 1) * limit;
+    const name = req.query.name || "";
 
-    Member.find()
+    Member.find({
+            $or: [
+                { name: { $regex: name, $options: "i" } },
+                { lastName: { $regex: name, $options: "i" } },
+            ],
+        })
         .sort({ name: 1 })
         .skip(skip)
         .limit(limit)

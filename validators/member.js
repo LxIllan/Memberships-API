@@ -5,7 +5,8 @@ const { body, param, query } = require('express-validator');
 */
 exports.getMembers = [
     query('page', 'Page must be a number.').isNumeric().optional().toInt(),
-    query('limit', 'Limit must be a number.').isNumeric().optional().toInt()
+    query('limit', 'Limit must be a number.').isNumeric().optional().toInt(),
+    query('name', 'Name must have only letters.').matches(/^[a-zA-Z]+$/).optional()
 ]
 
 /*
