@@ -97,7 +97,7 @@ exports.forgotPassword = (req, res) => {
                 .json({ error: "User with that email does not exist!" });
         }
         // generate a token with user id and secret
-        const token = jwt.sign({ _id: user._id, iss: "NODEAPI" },
+        const token = jwt.sign({ _id: user._id, iss: "MEMBERSHIPSAPI" },
             process.env.JWT_SECRET_KEY
         );
 
