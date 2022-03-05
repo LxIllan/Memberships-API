@@ -1,4 +1,6 @@
 const nodeMailer = require("nodemailer");
+const logger = require("../config/logger");
+require("dotenv").config();
 
 /*
  * @desc    Sends email to the specified email addresses.
@@ -6,19 +8,19 @@ const nodeMailer = require("nodemailer");
 */
 exports.sendEmail = (emailData) => {
     const transporter = nodeMailer.createTransport({
-        host: "smtp.hostinger.mx",
-        port: 587,
+        host: process.env.EMAIL_HOST,
+        port: process.env.EMAIL_PORT,
         secure: false,
         requireTLS: true,
         auth: {
-            user: "mailer@syss.tech",
-            pass: "__2Mailer",
+            user: process.env.EMAIL_ADDRESS,
+            pass: process.env.EMAIL_PASSWORD,
         },
     });
     return transporter
         .sendMail(emailData)
-        .then((info) => console.log(`Message sent: ${info.response}`))
-        .catch((err) => console.log(`Problem sending email: ${err}`));
+        .then((info) => logger.info(`Email sent: ${info.response}`))
+        .catch((err) => logger.warn(`Problem sending email: ${err}`));
 };
 
 /*
