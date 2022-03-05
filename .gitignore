@@ -4,3 +4,4 @@ tests/
 test.http
 package-lock.json
 memberships.properties
+memberships.log

@@ -26,6 +26,7 @@
         "nodemailer": "^6.7.2",
         "nodemon": "^2.0.15",
         "properties-reader": "^2.2.0",
-        "uuidv1": "^1.6.14"
+        "uuidv1": "^1.6.14",
+        "winston": "^3.6.0"
     }
 }

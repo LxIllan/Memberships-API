@@ -8,13 +8,15 @@ const { sendEmail, createCode } = require("../helpers/index");
 const { addTimeToDate, isMemberActive, daysDiff, isMemberOnSchedule } = require("../helpers/dates");
 const Membership = require("../models/membership");
 const mongoose = require("mongoose");
+const logger = require('../config/logger');
 
 /*
  * @desc    Get a member by id, every time param '/:memberId' is called
  */
 exports.memberById = (req, res, next, id) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(404).json({ error: `${id} is not a valid membershipId` });
+        logger.warn(`Invalid member id. Method: ${req.method}, URL: ${req.url}.`);
+        return res.status(404).json({ error: `${id} is not a valid memberId` });
     }
     Member.findById(id)
         .populate("membership")
@@ -22,8 +24,10 @@ exports.memberById = (req, res, next, id) => {
         .populate("payments.membership", "_id membership")
         .exec((err, member) => {
             if (err || !member) {
+                logger.warn(`Member not found. Method: ${req.method}, URL: ${req.url}.`);
                 return res.status(404).json({ error: "Member not found" });
             }
+            logger.info(`Member found by id. Method: ${req.method}, URL: ${req.url}.`);
             req.member = member;
             next();
         });
@@ -36,6 +40,7 @@ exports.memberById = (req, res, next, id) => {
 exports.getMemberByCode = (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+        logger.warn(`Validation errors. Method: ${req.method}, URL: ${req.url}.`);
         return res.status(400).json({ error: errors.array().map((e) => e.msg) });
     }
     if (/\d/.test(req.params.code)) {
@@ -45,13 +50,15 @@ exports.getMemberByCode = (req, res) => {
             .populate("payments.membership", "_id membership")
             .exec((err, member) => {
                 if (err || !member) {
+                    logger.warn(`Member not found. Method: ${req.method}, URL: ${req.url}.`);
                     return res.status(404).json({ error: "Member not found" });
                 }
+                logger.info(`Member found by code. Method: ${req.method}, URL: ${req.url}.`);
                 member.photo = undefined;
-                console.log(member);
                 return res.status(200).json(member);
             });
     } else {
+        logger.warn(`Invalid code. Method: ${req.method}, URL: ${req.url}.`);
         return res.status(400).json({ error: `${req.body.code} is not a valid code.` });
     }
 };
@@ -61,6 +68,7 @@ exports.getMemberByCode = (req, res) => {
  * @route   GET /members/:memberId
  */
 exports.getMember = (req, res) => {
+    logger.info(`Get member. Method: ${req.method}, URL: ${req.url}.`);
     return res.status(200).json(req.member);
 };
 
@@ -75,10 +83,12 @@ exports.registerMember = async (req, res) => {
     form.keepExtensions = true;
     form.parse(req, async (err, fields, files) => {
         if (err) {
+            logger.warn(`Photo could not be uploaded. Method: ${req.method}, URL: ${req.url}.`);
             return res.status(400).json({ error: "Photo could not be uploaded" });
         }
         const memberExists = await Member.findOne({ email: fields.email.toLowerCase() });
         if (memberExists) {
+            logger.warn(`Email taken. Method: ${req.method}, URL: ${req.url}.`);
             return res.status(403).json({
                 error: "Email is taken!",
             });
@@ -118,6 +128,7 @@ exports.registerMember = async (req, res) => {
 
         member.save((err, result) => {
             if (err) {
+                logger.warn(`Member could not be saved. Method: ${req.method}, URL: ${req.url}.`);
                 return res.status(400).json({ error: err });
             }
             let receipt = new Receipt({
@@ -129,9 +140,11 @@ exports.registerMember = async (req, res) => {
             });
             receipt.save((err, result) => {
                 if (err) {
+                    logger.warn(`Receipt did not save. Method: ${req.method}, URL: ${req.url}.`);
                     return res.status(400).json({ error: "Receipt did not save" });
                 }
             });
+            logger.info(`Member has been registered. Method: ${req.method}, URL: ${req.url}.`);
             sendEmail(emailData);
             res.status(201).json(member);
         });
@@ -145,8 +158,10 @@ exports.registerMember = async (req, res) => {
 exports.getMemberPhoto = (req, res, next) => {
     if (req.member.photo.data) {
         res.setHeader("Content-Type", req.member.photo.contentType);
+        logger.info(`Serving member photo. Method: ${req.method}, URL: ${req.url}.`);
         return res.status(200).send(req.member.photo.data);
     }
+    logger.info(`Member has no photo. Method: ${req.method}, URL: ${req.url}.`);
     next();
 };
 
@@ -158,6 +173,7 @@ exports.getMemberPhoto = (req, res, next) => {
 exports.getMembers = (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+        logger.warn(`Validation errors. Method: ${req.method}, URL: ${req.url}.`);
         return res.status(400).json({ error: errors.array().map((e) => e.msg) });
     }
 
@@ -178,8 +194,10 @@ exports.getMembers = (req, res) => {
         .select("name lastName code endMembership")
         .exec((err, members) => {
             if (err) {
+                logger.warn(`Error getting members. Method: ${req.method}, URL: ${req.url}.`);
                 return res.status(400).json({ error: err });
             }
+            logger.warn(`Get members. Method: ${req.method}, URL: ${req.url}.`);
             res.status(200).json(members);
         });
 };
@@ -191,6 +209,7 @@ exports.getMembers = (req, res) => {
 exports.sendNotification = (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+        logger.warn(`Validation errors. Method: ${req.method}, URL: ${req.url}.`);
         return res.status(400).json({ error: errors.array().map((e) => e.msg) });
     }
 
@@ -203,6 +222,7 @@ exports.sendNotification = (req, res) => {
 
     Member.find({ endMembership: { $gte: new Date() } }, (err, members) => {
         if (err) {
+            logger.warn(`Error getting active members. Method: ${req.method}, URL: ${req.url}.`);
             return res.status(400).json({ error: err });
         }
         const mailList = [];
@@ -213,6 +233,7 @@ exports.sendNotification = (req, res) => {
         });
         emailData.to = mailList;
         sendEmail(emailData);
+        logger.info(`Notification has been sent. Method: ${req.method}, URL: ${req.url}.`);
         res.status(200).json({ message: "Success!" });
     }).select("email");
 };
@@ -230,6 +251,7 @@ exports.sendEmailEndMembership = () => {
 
     Member.find({ endMembership: { $gte: new Date() } }, (err, members) => {
         if (err) {
+            logger.warn(`Error getting active members. Method: ${req.method}, URL: ${req.url}.`);
             return res.status(400).json({ error: err });
         }
         members.forEach((member) => {
@@ -238,6 +260,7 @@ exports.sendEmailEndMembership = () => {
                     emailData.text = `Dear ${member.name} ${member.lastName} your membership ends in 7 days, in ${member.endMembership}`;
                     emailData.html = `<p>${emailData.text}</p>`;
                     emailData.to = member.email;
+                    logger.info(`Notification end membership has been sent. Method: ${req.method}, URL: ${req.url}.`);
                     sendEmail(emailData);
                 }
             }
@@ -253,6 +276,7 @@ exports.sendEmailEndMembership = () => {
 exports.setAssistance = (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+        logger.warn(`Validation errors. Method: ${req.method}, URL: ${req.url}.`);
         return res.status(400).json({ error: errors.array().map((e) => e.msg) });
     }
 
@@ -262,6 +286,7 @@ exports.setAssistance = (req, res) => {
         .populate("payments.membership", "_id membership")
         .exec(async (err, member) => {
             if (err || !member) {
+                logger.warn(`Member not found. Method: ${req.method}, URL: ${req.url}.`);
                 return res.status(404).json({ error: "Member not found" });
             }
             if (isMemberActive(member.endMembership)) {
@@ -271,17 +296,20 @@ exports.setAssistance = (req, res) => {
                         member.membership.specialHours.endHour
                     )
                 ) {
-                    return res.status(400).json({ error: "User out of time" });
+                    logger.warn(`User out of schedule. Method: ${req.method}, URL: ${req.url}.`);
+                    return res.status(400).json({ error: "User out of schedule." });
                 }
                 member.assistances.push(Date.now());
                 member.save((err, member) => {
                     if (err) {
-                        console.log(err);
+                        logger.warn(`User could not be saved. Method: ${req.method}, URL: ${req.url}.`);
                         return res.status(400).json({ error: err });
                     }
+                    logger.info(`Set assistance to member. Method: ${req.method}, URL: ${req.url}.`);
                     res.status(200).json(member);
                 });
             } else {
+                logger.warn(`User has no active membership. Method: ${req.method}, URL: ${req.url}.`);
                 return res.status(400).json({ error: "User has no active membership" });
             }
         });
@@ -293,9 +321,9 @@ exports.setAssistance = (req, res) => {
  ? Members can pay even if their memberships has not ended.
 */
 exports.payMembership = (req, res) => {
-    console.log(req.body);
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+        logger.warn(`Validation errors. Method: ${req.method}, URL: ${req.url}.`);
         return res.status(400).json({ error: errors.array().map((e) => e.msg) });
     }
 
@@ -305,6 +333,7 @@ exports.payMembership = (req, res) => {
         .populate("payments.membership", "_id membership")
         .exec(async (err, member) => {
             if (err || !member) {
+                logger.warn(`Member not found. Method: ${req.method}, URL: ${req.url}.`);
                 return res.status(404).json({ error: "Member not found" });
             }
             const membership = await Membership.findById(req.body.membership);
@@ -338,7 +367,7 @@ exports.payMembership = (req, res) => {
 
             member.save((err, member) => {
                 if (err) {
-                    console.log(err);
+                    logger.warn(`Member could not be saved. Method: ${req.method}, URL: ${req.url}.`);
                     return res.status(400).json({ error: err });
                 }
                 let receipt = new Receipt({
@@ -350,9 +379,11 @@ exports.payMembership = (req, res) => {
                 });
                 receipt.save((err, result) => {
                     if (err) {
-                        return res.status(400).json({ error: "Receipt did not save" });
+                        logger.warn(`Receipt did not save. Method: ${req.method}, URL: ${req.url}.`);
+                        return res.status(400).json({ error: "Receipt did not save." });
                     }
                 });
+                logger.info(`Member paid a membership. Method: ${req.method}, URL: ${req.url}.`);
                 sendEmail(emailData);
                 res.status(200).json(member);
             });
@@ -370,13 +401,15 @@ exports.updateMember = (req, res) => {
     form.keepExtensions = true;
     form.parse(req, async (err, fields, files) => {
         if (err) {
+            logger.warn(`Photo could not be uploaded. Method: ${req.method}, URL: ${req.url}.`);
             return res.status(400).json({ error: "Photo could not be uploaded." });
         }
         let member = req.member;
         if (fields.email) {
             const memberExists = await Member.findOne({ email: fields.email.toLowerCase() });
             if (memberExists) {
-                if (!member._id.equals(iserExists._id)) {
+                if (!member._id.equals(memberExists._id)) {
+                    logger.warn(`Email taken. Method: ${req.method}, URL: ${req.url}.`);
                     return res.status(400).json({ error: "Email is taken!" });
                 }
             }
@@ -390,8 +423,10 @@ exports.updateMember = (req, res) => {
         }
         member.save((err, result) => {
             if (err) {
+                logger.warn(`Member could not be updated. Method: ${req.method}, URL: ${req.url}.`);
                 return res.status(400).json({ error: err });
             }
+            logger.info(`Member has been updated. Method: ${req.method}, URL: ${req.url}.`);
             return res.status(200).json(member);
         });
     });
@@ -406,8 +441,10 @@ exports.deleteMember = (req, res) => {
     let member = req.member;
     member.remove((err, result) => {
         if (err) {
+            logger.warn(`Member could not be deleted. Method: ${req.method}, URL: ${req.url}.`);
             return res.status(400).json({ error: err });
         }
-        res.status(200).json({ message: "Members has been deleted successfully!" });
+        logger.info(`Member has been deleted. Method: ${req.method}, URL: ${req.url}.`);
+        res.status(200).json({ message: "Member has been deleted successfully!" });
     });
 };

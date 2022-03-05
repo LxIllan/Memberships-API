@@ -1,10 +1,11 @@
 const User = require('../models/user');
 const jwt = require("jsonwebtoken");
 const formidable = require('formidable');
-const {validationResult } = require('express-validator')
+const {validationResult } = require('express-validator');
 const fs = require('fs');
 const _ = require('lodash');
-const { handleErrors, sendEmail } = require("../helpers");
+const { sendEmail } = require("../helpers");
+const logger = require("../config/logger");
 require("dotenv").config();
 
 /*
@@ -13,14 +14,17 @@ require("dotenv").config();
 exports.userById = (req, res, next, id) => {
     const mongoose = require("mongoose");
     if (!mongoose.Types.ObjectId.isValid(id)) {
+        logger.warn(`Invalid user id. Method: ${req.method}, URL: ${req.url}.`);
         return res.status(404).json({ error: `${id} is not a valid userId` });
     }
 
     User.findById(id)
         .exec((err, user) => {
             if ((err) || !(user)) {
+                logger.warn(`User not found. Method: ${req.method}, URL: ${req.url}.`);
                 return res.status(400).json({ error: "User not found" });
             }
+            logger.info(`User found by id. Method: ${req.method}, URL: ${req.url}.`);
             req.profile = user;
             next();
         });
@@ -33,6 +37,7 @@ exports.userById = (req, res, next, id) => {
 exports.getUser = (req, res) => {
     req.profile.hashed_password = undefined;
     req.profile.salt = undefined;
+    logger.info(`Get user. Method: ${req.method}, URL: ${req.url}.`);
     return res.status(200).json(req.profile);
 };
 
@@ -43,8 +48,10 @@ exports.getUser = (req, res) => {
 exports.getUserPhoto = (req, res, next) => {
     if (req.profile.photo.data) {
         res.setHeader('Content-Type', req.profile.photo.contentType);
+        logger.info(`Serving user photo. Method: ${req.method}, URL: ${req.url}.`);
         return res.status(200).send(req.profile.photo.data);
     }
+    logger.info(`User has no photo. Method: ${req.method}, URL: ${req.url}.`);
     next();
 };
 
@@ -55,8 +62,10 @@ exports.getUserPhoto = (req, res, next) => {
 exports.getUsers = (req, res) => {
     User.find((err, users) => {
         if (err) {
+            logger.warn(`Error getting users. Method: ${req.method}, URL: ${req.url}.`);
             return res.status(400).json({ error: err });
         }
+        logger.warn(`Get users. Method: ${req.method}, URL: ${req.url}.`);
         res.json(users);
     }).select('name lastName email role createdAt');
 };
@@ -69,11 +78,13 @@ exports.getUsers = (req, res) => {
 exports.registerUser = async (req, res) => {
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
+        logger.warn(`Photo could not be uploaded. Method: ${req.method}, URL: ${req.url}.`);
         return res.status(400).json({ error: errors.array().map(e => e.msg) })
     }
     
     const userExists = await User.findOne({email: req.body.email.toLowerCase() });
     if (userExists) {
+        logger.warn(`Email taken. Method: ${req.method}, URL: ${req.url}.`);
         return res.status(403).json({
 			error: "Email is taken!",
 		});
@@ -94,8 +105,10 @@ exports.registerUser = async (req, res) => {
         
     user.updateOne({resetPasswordLink: token}, (err, success) => {
         if (err) {
+            logger.warn(`Set reset password link failed. Method: ${req.method}, URL: ${req.url}.`);
             return res.status(400).json({error: err});
         } else {
+            logger.info(`User has been registered. Method: ${req.method}, URL: ${req.url}.`);
             sendEmail(emailData);
             return res.status(200).json({message: `Email has been sent to ${user.email}. Follow the instructions to set your password.`});
         }
@@ -111,8 +124,8 @@ exports.updateUser = (req, res) => {
     let form = new formidable.IncomingForm();
     form.keepExtensions = true;
     form.parse(req, async (err, fields, files) => {
-        console.log(fields)
         if (err) {
+            logger.warn(`Photo could not be uploaded. Method: ${req.method}, URL: ${req.url}.`);
             return res.status(400).json({error: "Photo could not be uploaded."});
         }
         let user = req.profile;
@@ -120,6 +133,7 @@ exports.updateUser = (req, res) => {
             const userExists = await User.findOne({'email': fields.email.toLowerCase()});
             if (userExists) {
                 if (!(user._id.equals(userExists._id))) {
+                    logger.warn(`Email taken. Method: ${req.method}, URL: ${req.url}.`);
                     return res.status(400).json({error: 'Email is taken!'});
                 }
             }
@@ -133,10 +147,12 @@ exports.updateUser = (req, res) => {
         }
         user.save((err, result) => {
             if (err) {
+                logger.warn(`User could not be updated. Method: ${req.method}, URL: ${req.url}.`);
                 return res.status(400).json({error: err});
             }
             user.hashed_password = undefined;
             user.salt = undefined;
+            logger.info(`User has been updated. Method: ${req.method}, URL: ${req.url}.`);
             return res.status(200).json(user);
         });
     });
@@ -150,8 +166,10 @@ exports.deleteUser = (req, res) => {
     let user = req.profile;
     user.remove((err, user) => {
         if (err) {
+            logger.warn(`User could not be deleted. Method: ${req.method}, URL: ${req.url}.`);
             return res.status(400).json({ error: err });
         }
+        logger.info(`User has been deleted. Method: ${req.method}, URL: ${req.url}.`);
         res.json({ message: "User was deleted successfully!" });
     });
 };
