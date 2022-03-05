@@ -1,90 +1,90 @@
 const Receipt = require("../models/receipt");
+const logger = require("../config/logger");
 const { validationResult } = require("express-validator");
-const { strDateToStartEndDate } = require("../helpers/dates")
+const { strDateToStartEndDate } = require("../helpers/dates");
 
 /*
- * @desc    Get receipts
- * @route   GET /receipts
+ * @desc    Get receipts by anything
  */
-exports.getReceipts = (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ error: errors.array().map((e) => e.msg) });
-    }
-
-    const page = req.query.page || 1;
-    const limit = req.query.limit || 10;
+const getReceiptsByX = (find, query) => {
+    const page = query.page || 1;
+    const limit = query.limit || 10;
     const skip = (page - 1) * limit;
 
-    const date = strDateToStartEndDate(req.query.date);
-    
-    console.log(date)
-    Receipt.find({ date: { $gte: date.start, $lt: date.end } })
+    return Receipt.find(find)
         .populate("soldBy", "_id name lastName")
         .populate("boughtBy", "_id name lastName")
         .sort({ date: -1 })
         .skip(skip)
-        .limit(limit)
-        .exec((err, receipts) => {
-            if (err) {
-                return res.status(400).json({ error: err });
-            }
-            res.status(200).json(receipts);
-        });
+        .limit(limit);
+};
+
+/*
+ * @desc    Get all receipts
+ * @route   GET /receipts
+ */
+exports.getReceipts = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        logger.warn(`Validation errors. Method: ${req.method}, URL: ${req.url}.`);
+        return res.status(400).json({ error: errors.array().map((e) => e.msg) });
+    }
+
+    const date = strDateToStartEndDate(req.query.date);
+    const find = { date: { $gte: date.start, $lt: date.end } };
+    const receipts = await getReceiptsByX(find, req.query);
+    
+    if (receipts) {
+        logger.info(`Get all receipts. Method: ${req.method}, URL: ${req.url}.`);
+        return res.status(200).json(receipts);
+    } else {
+        logger.warn(`Error getting all receipts. Method: ${req.method}, URL: ${req.url}.`);
+        return res.status(400).json({ error: 'Error getting receipts.' });
+    }
 };
 
 /*
  * @desc    Get receipts by member
  * @route   GET /receipts/member/:memberId
  */
-exports.getReceiptsByMember = (req, res) => {
+exports.getReceiptsByMember = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+        logger.warn(`Validation errors. Method: ${req.method}, URL: ${req.url}.`);
         return res.status(400).json({ error: errors.array().map((e) => e.msg) });
     }
 
-    const page = req.query.page || 1;
-    const limit = req.query.limit || 10;
-    const skip = (page - 1) * limit;
+    const find = { boughtBy: req.params.memberId };
+    const receipts = await getReceiptsByX(find, req.query);
 
-    Receipt.find({ boughtBy: req.params.memberId })
-        .populate("soldBy", "_id name lastName")
-        .populate("boughtBy", "_id name lastName")
-        .sort({ date: -1 })
-        .skip(skip)
-        .limit(limit)
-        .exec((err, receipts) => {
-            if (err) {
-                return res.status(400).json({ error: err });
-            }
-            res.status(200).json(receipts);
-        });
+    if (receipts) {
+        logger.info(`Get receipts by member. Method: ${req.method}, URL: ${req.url}.`);
+        return res.status(200).json(receipts);
+    } else {
+        logger.warn(`Error getting receipts by member. Method: ${req.method}, URL: ${req.url}.`);
+        return res.status(400).json({ error: 'Error getting receipts.' });
+    }
 };
 
 /*
  * @desc    Get receipts by user
  * @route   GET /receipts/user/:userId
  */
-exports.getReceiptsByUser = (req, res) => {
+exports.getReceiptsByUser = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+        logger.warn(`Validation errors. Method: ${req.method}, URL: ${req.url}.`);
         return res.status(400).json({ error: errors.array().map((e) => e.msg) });
     }
 
-    const page = req.query.page || 1;
-    const limit = req.query.limit || 10;
-    const skip = (page - 1) * limit;
-
-    Receipt.find({ soldBy: req.params.userId })
-        .populate("soldBy", "_id name lastName")
-        .populate("boughtBy", "_id name lastName")
-        .sort({ date: -1 })
-        .skip(skip)
-        .limit(limit)
-        .exec((err, receipts) => {
-            if (err) {
-                return res.status(400).json({ error: err });
-            }
-            res.status(200).json(receipts);
-        });
+    const find = { soldBy: req.params.userId };
+    const receipts = await getReceiptsByX(find, req.query);
+    
+    if (receipts) {
+        logger.info(`Get receipts by user. Method: ${req.method}, URL: ${req.url}.`);
+        return res.status(200).json(receipts);
+    } else {
+        logger.warn(`Error getting receipts by user. Method: ${req.method}, URL: ${req.url}.`);
+        return res.status(400).json({ error: 'Error getting receipts.' });
+    }
 };
