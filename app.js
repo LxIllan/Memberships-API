@@ -9,7 +9,7 @@ const logger = require('./config/logger');
 require('dotenv').config();
 
 const app = express();
-const port = 3001 || 8080;
+const port = process.env.PORT || 3001;
 
 // DB Connection
 connectDB();
