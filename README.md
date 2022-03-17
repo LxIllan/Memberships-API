@@ -1,17 +1,28 @@
 # Membership Management backend
 
-## Technologies
+## Technologías
 <ul>
     <li>NodeJS</li>
     <li>Express</li>
     <li>Auth jwt</li>
+    <li>MongoDB</li>
 </ul>
 
-## Installation
+## Descripción
+Es una REST API que administra membresías. Cuenta con do tipos de
+usuarios: recepcionistas y administradores. El Sistema controla quién
+hace ventas, registrar miembros, etc. Las mambresías pueden tener
+restricciones de horarios. Es posible enviar notificaciones a los
+miembros, se les notifica cuando su membresía está a unos días de
+terminar y se les puede enviar avisos generales. Este Sistema fue
+diseñado para un gimnaso, pero además puede ser utilizado por
+entrenadores personales y quién sea que necesite administrar
+membresías de clientes.
+
+## Instalación
 ```
 npm install
 ```
-
 ## Environment variables
 <ul>
     <li>MONGO_URI - mongodb://myDBReader:D1fficultP%40ssw0rd@mongodb0.example.com:27017/?authSource=admin</li>
