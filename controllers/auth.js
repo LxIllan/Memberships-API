@@ -114,7 +114,7 @@ exports.forgotPassword = (req, res) => {
 
         // email data
         const emailData = {
-            from: "mailer@syss.tech",
+            from: process.env.EMAIL_ADDRESS,
             to: email,
             subject: "Password Reset Instructions",
             text: `Please use the following link to reset your password: ${process.env.CLIENT_URL}/reset-password/${token}`,
