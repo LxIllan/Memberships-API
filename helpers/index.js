@@ -10,7 +10,7 @@ exports.sendEmail = (emailData) => {
     const transporter = nodeMailer.createTransport({
         host: process.env.EMAIL_HOST,
         port: process.env.EMAIL_PORT,
-        secure: false,
+        secure: true,
         requireTLS: true,
         auth: {
             user: process.env.EMAIL_ADDRESS,
