@@ -7,7 +7,7 @@ const loggerFormat = format.combine(format.timestamp({format: 'YYYY-MM-DD HH:mm:
 const logger = createLogger({
     format: loggerFormat,
     transports: [
-        new transports.File({filename: 'memberships.log'}),
+        new transports.File({ filename: 'app.log' }),
         new transports.Console()
     ]
 });
