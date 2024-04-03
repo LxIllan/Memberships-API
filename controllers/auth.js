@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const expressJWT = require("express-jwt");
+const { expressjwt } = require("express-jwt");
 const User = require("../models/user");
 const {validationResult } = require('express-validator');
 const {sendEmail} = require('../helpers');
@@ -181,7 +181,7 @@ exports.resetPassword = (req, res) => {
 /*
  * Middleware validating JWTs through the jsonwebtoken.
 */
-exports.requireSignIn = expressJWT({
+exports.requireSignIn = expressjwt({
     secret: process.env.JWT_SECRET_KEY,
     algorithms: ["HS256"],
     userProperty: "auth",
