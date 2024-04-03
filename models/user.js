@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const { ObjectId } = mongoose.Schema;
 const uuidv1 = require('uuidv1');
 const crypto = require('crypto');
 
@@ -35,10 +34,7 @@ const userSchema = mongoose.Schema({
         data: Buffer,
         contentType: String
     },
-    resetPasswordLink: {
-        data: String,
-        default: ''
-    }
+    resetPasswordLink: String
 }, {
     timestamps: true
 });
