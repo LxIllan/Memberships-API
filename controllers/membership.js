@@ -14,20 +14,26 @@ exports.membershipById = (req, res, next, id) => {
     }
     Membership.findById(id)
         .populate()
-        .exec((err, membership) => {
-            if (err || !membership) {
+        .exec()
+        .then((membership) => {
+            if (!membership) {
                 logger.warn(`Membership not found. Method: ${req.method}, URL: ${req.url}.`);
                 return res.status(404).json({ error: "Membership not found" });
             }
             logger.info(`Membership found by id. Method: ${req.method}, URL: ${req.url}.`);
             req.membership = membership;
             next();
+        })
+        .catch((err) => {
+            logger.warn(`Error getting membership by id. Method: ${req.method}, URL: ${req.url}.`);
+            return res.status(404).json({ error: "Membership not found" });
         });
 };
 
 /*
  * @desc    Get a membership by id
  * @route   GET /memberships/:membershipId
+ * @return  JSON object
  */
 exports.getMembership = (req, res) => {
     logger.info(`Get membership. Method: ${req.method}, URL: ${req.url}.`);
@@ -38,6 +44,7 @@ exports.getMembership = (req, res) => {
  * @desc    Create a membership
  * @route   POST /memberships
  ? Memberships may or may not be time-restricted.
+ * @return  JSON object
 */
 exports.createMembership = async (req, res) => {
     const errors = validationResult(req);
@@ -51,7 +58,7 @@ exports.createMembership = async (req, res) => {
     }
 
     const membershipExist = await Membership.findOne({
-        membership: req.body.membership.toLowerCase(),
+        membership: req.body.membership,
     });
     if (membershipExist) {
         logger.warn(`Membership already exists. Method: ${req.method}, URL: ${req.url}.`);
@@ -70,36 +77,39 @@ exports.createMembership = async (req, res) => {
     if (membership.specialHours.startHour === 0 && membership.specialHours.endHour === 0) {
         membership.specialHours = undefined;
     }
-    membership.save((err, result) => {
-        if (err) {
-            logger.warn(`Membership could not be saved. Method: ${req.method}, URL: ${req.url}.`);
+    membership.save()
+        .then((result) => {
+            logger.info(`Membership has been registered. Method: ${req.method}, URL: ${req.url}.`);
+            return res.status(200).json(result);
+        }).catch((err) => {
+            logger.warn(`Error registering membership. Method: ${req.method}, URL: ${req.url}.`);
             return res.status(400).json({ error: err });
-        }
-        logger.info(`Membership has been registered. Method: ${req.method}, URL: ${req.url}.`);
-        return res.status(200).json(result);
-    });
+        });
 };
 
 /*
  * @desc    Get all memberships
  * @route   GET /memberships
+ * @return  JSON object
  */
 exports.getMemberships = (req, res) => {
-    Membership.find((err, memberships) => {
-        if (err) {
+    Membership.find()
+        .select("_id membership price months weeks specialHours updatedAt")
+        .sort({ months: 1 })
+        .then((memberships) => {
+            logger.info(`Get memberships. Method: ${req.method}, URL: ${req.url}.`);
+            return res.status(200).json(memberships);
+        })
+        .catch((err) => {
             logger.warn(`Error getting memberships. Method: ${req.method}, URL: ${req.url}.`);
             return res.status(400).json({ error: err });
-        }
-        logger.warn(`Get memberships. Method: ${req.method}, URL: ${req.url}.`);
-        res.status(200).json(memberships);
-    })
-        .select("_id membership price months weeks specialHours updatedAt")
-        .sort({ months: 1 });
+        });
 };
 
 /*
  * @desc    Update membership by id
  * @route   PUT /memberships/:membershipId
+ * @return  JSON object
  */
 exports.editMembership = (req, res) => {
     const errors = validationResult(req);
@@ -118,28 +128,32 @@ exports.editMembership = (req, res) => {
         membership.specialHours = undefined;
     }
     membership.updatedAt = Date.now();
-    membership.save((err, result) => {
-        if (err) {
-            logger.warn(`Membership could not be saved. Method: ${req.method}, URL: ${req.url}.`);
+
+    membership.save()
+        .then((result) => {
+            logger.info(`Membership has been updated. Method: ${req.method}, URL: ${req.url}.`);
+            return res.status(200).json({ result, message: "success!" });
+        })
+        .catch((err) => {
+            logger.warn(`Error updating membership. Method: ${req.method}, URL: ${req.url}.`);
             return res.status(400).json({ error: err });
-        }
-        logger.warn(`Membership has been updated. Method: ${req.method}, URL: ${req.url}.`);
-        res.status(200).json({ result, message: "success!" });
-    });
+        });
 };
 
 /*
  * @desc    Remove membership by id
  * @route   DELETE /memberships/:membershipId
+ * @return  JSON object
  */
 exports.deleteMembership = (req, res) => {
-    let membership = req.membership;
-    membership.remove((err, result) => {
-        if (err) {
-            logger.warn(`Membership could not be deleted. Method: ${req.method}, URL: ${req.url}.`);
-            return res.status(400).json({ error: "Membership could not be deleted" });
-        }
-        logger.info(`Membership has been deleted. Method: ${req.method}, URL: ${req.url}.`);
-        res.status(200).json({ message: "Membership has been deleted successfully!" });
-    });
+    const membership = req.membership;
+    membership.deleteOne()
+        .then((result) => {
+            logger.info(`Membership has been deleted. Method: ${req.method}, URL: ${req.url}.`);
+            return res.status(200).json({ message: "Membership has been deleted successfully!" });
+        })
+        .catch((err) => {
+            logger.warn(`Error deleting membership. Method: ${req.method}, URL: ${req.url}.`);
+            return res.status(400).json({ error: err });
+        });
 };
