@@ -35,5 +35,7 @@ exports.setAssistance = [
  * @route   PUT /members/pay-membership
 */
 exports.payMembership = [
-    body("memberId", "memberId is not a mongo id.").isMongoId()
+    body("memberId", "memberId is not a mongo id.").isMongoId(),
+    body("userId", "userId is not a mongo id.").isMongoId(),
+    body("membership", "membership is not a mongo id.").isMongoId()
 ];

@@ -6,22 +6,22 @@ const pagination = [
 ];
 
 /*
- * @route   GET /receipts
- */
+* @route   GET /receipts
+*/
 exports.getReceipts = [
     ...pagination,
-    query("date", "Is not a valid date.").isDate().optional()
+    query("date", "Is not a valid date.").isISO8601().optional()
 ];
 
 /*
  * @desc    Get receipts by member
  * @route   GET /receipts/member/:memberId
  */
-
 exports.getReceiptsByMember = [
     ...pagination,
     param("memberId", "memberId is not a mongo id.").isMongoId(),
 ];
+
 /*
  * @desc    Get receipts by user
  * @route   GET /receipts/user/:userId

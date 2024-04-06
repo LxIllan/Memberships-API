@@ -22,6 +22,7 @@ const getReceiptsByX = (find, query) => {
 /*
  * @desc    Get all receipts
  * @route   GET /receipts
+ * @return  JSON object
  */
 exports.getReceipts = async (req, res) => {
     const errors = validationResult(req);
@@ -33,7 +34,7 @@ exports.getReceipts = async (req, res) => {
     const date = strDateToStartEndDate(req.query.date);
     const find = { date: { $gte: date.start, $lt: date.end } };
     const receipts = await getReceiptsByX(find, req.query);
-    
+
     if (receipts) {
         logger.info(`Get all receipts. Method: ${req.method}, URL: ${req.url}.`);
         return res.status(200).json(receipts);
@@ -46,6 +47,7 @@ exports.getReceipts = async (req, res) => {
 /*
  * @desc    Get receipts by member
  * @route   GET /receipts/member/:memberId
+ * @return  JSON object
  */
 exports.getReceiptsByMember = async (req, res) => {
     const errors = validationResult(req);
@@ -69,6 +71,7 @@ exports.getReceiptsByMember = async (req, res) => {
 /*
  * @desc    Get receipts by user
  * @route   GET /receipts/user/:userId
+ * @return  JSON object
  */
 exports.getReceiptsByUser = async (req, res) => {
     const errors = validationResult(req);
@@ -79,7 +82,7 @@ exports.getReceiptsByUser = async (req, res) => {
 
     const find = { soldBy: req.params.userId };
     const receipts = await getReceiptsByX(find, req.query);
-    
+
     if (receipts) {
         logger.info(`Get receipts by user. Method: ${req.method}, URL: ${req.url}.`);
         return res.status(200).json(receipts);
