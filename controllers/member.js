@@ -22,20 +22,25 @@ exports.memberById = (req, res, next, id) => {
         .populate("membership")
         .populate("payments", { path: "membership", sort: { date: -1 } })
         .populate("payments.membership", "_id membership")
-        .exec((err, member) => {
-            if (err || !member) {
+        .exec()
+        .then((member) => {
+            if (!member) {
                 logger.warn(`Member not found. Method: ${req.method}, URL: ${req.url}.`);
                 return res.status(404).json({ error: "Member not found" });
             }
             logger.info(`Member found by id. Method: ${req.method}, URL: ${req.url}.`);
             req.member = member;
             next();
+        }).catch((err) => {
+            logger.warn(`Error getting member by id. Method: ${req.method}, URL: ${req.url}.`);
+            return res.status(400).json({ error: "Member not found" });
         });
 };
 
 /*
  * @desc    Get a member by code
  * @route   GET /members/code/:code
+ * @return  JSON object
  */
 exports.getMemberByCode = (req, res) => {
     const errors = validationResult(req);
@@ -48,14 +53,19 @@ exports.getMemberByCode = (req, res) => {
             .populate("membership")
             .populate("payments", { path: "membership", sort: { date: -1 } })
             .populate("payments.membership", "_id membership")
-            .exec((err, member) => {
-                if (err || !member) {
+            .exec()
+            .then((member) => {
+                if (!member) {
                     logger.warn(`Member not found. Method: ${req.method}, URL: ${req.url}.`);
                     return res.status(404).json({ error: "Member not found" });
                 }
                 logger.info(`Member found by code. Method: ${req.method}, URL: ${req.url}.`);
                 member.photo = undefined;
                 return res.status(200).json(member);
+            })
+            .catch((err) => {
+                logger.warn(`Error getting member by code. Method: ${req.method}, URL: ${req.url}.`);
+                return res.status(400).json({ error: err });
             });
     } else {
         logger.warn(`Invalid code. Method: ${req.method}, URL: ${req.url}.`);
@@ -66,6 +76,7 @@ exports.getMemberByCode = (req, res) => {
 /*
  * @desc    Get a member by id
  * @route   GET /members/:memberId
+ * @return  JSON object
  */
 exports.getMember = (req, res) => {
     logger.info(`Get member. Method: ${req.method}, URL: ${req.url}.`);
@@ -77,6 +88,7 @@ exports.getMember = (req, res) => {
  * @route   POST /members
  ! Every member must have a unique email and code
  TODO: Validate incoming form.
+ * @return  JSON object
 */
 exports.registerMember = async (req, res) => {
     let form = new formidable.IncomingForm();
@@ -126,34 +138,36 @@ exports.registerMember = async (req, res) => {
             html: `<p>Welcome to {memberships_place} you have paid ${membership.membership} which ends on ${member.endMembership}</p>`,
         };
 
-        member.save((err, result) => {
-            if (err) {
+        member.save()
+            .then((result) => {
+                let receipt = new Receipt({
+                    membership: membership.membership,
+                    price: membership.price,
+                    boughtBy: member,
+                    soldBy: new mongoose.mongo.ObjectId(fields.userId),
+                    date: Date.now(),
+                });
+                receipt.save()
+                    .catch((err) => {
+                        if (err) {
+                            logger.warn(`Receipt did not save. Method: ${req.method}, URL: ${req.url}.`);
+                            return res.status(400).json({ error: "Receipt did not save" });
+                        }
+                    });
+                logger.info(`Member has been registered. Method: ${req.method}, URL: ${req.url}.`);
+                sendEmail(emailData);
+                return res.status(201).json(member);
+            }).catch((err) => {
                 logger.warn(`Member could not be saved. Method: ${req.method}, URL: ${req.url}.`);
                 return res.status(400).json({ error: err });
-            }
-            let receipt = new Receipt({
-                membership: membership.membership,
-                price: membership.price,
-                boughtBy: member,
-                soldBy: new mongoose.mongo.ObjectId(fields.userId),
-                date: Date.now(),
             });
-            receipt.save((err, result) => {
-                if (err) {
-                    logger.warn(`Receipt did not save. Method: ${req.method}, URL: ${req.url}.`);
-                    return res.status(400).json({ error: "Receipt did not save" });
-                }
-            });
-            logger.info(`Member has been registered. Method: ${req.method}, URL: ${req.url}.`);
-            sendEmail(emailData);
-            res.status(201).json(member);
-        });
     });
 };
 
 /*
  * @desc    Get a member photo in other endpoint
  * @route   GET /members/photo/:memberId
+ * @return  JSON object
  */
 exports.getMemberPhoto = (req, res, next) => {
     if (req.member.photo.data) {
@@ -169,6 +183,7 @@ exports.getMemberPhoto = (req, res, next) => {
  * @desc    Get all members
  * @route   GET /members
  ? For the moment it searches by name or last name.
+ * @return  JSON object
  */
 exports.getMembers = (req, res) => {
     const errors = validationResult(req);
@@ -183,28 +198,30 @@ exports.getMembers = (req, res) => {
     const name = req.query.name || "";
 
     Member.find({
-            $or: [
-                { name: { $regex: name, $options: "i" } },
-                { lastName: { $regex: name, $options: "i" } },
-            ],
-        })
+        $or: [
+            { name: { $regex: name, $options: "i" } },
+            { lastName: { $regex: name, $options: "i" } },
+        ],
+    })
         .sort({ name: 1 })
         .skip(skip)
         .limit(limit)
         .select("name lastName code endMembership")
-        .exec((err, members) => {
-            if (err) {
-                logger.warn(`Error getting members. Method: ${req.method}, URL: ${req.url}.`);
-                return res.status(400).json({ error: err });
-            }
-            logger.warn(`Get members. Method: ${req.method}, URL: ${req.url}.`);
+        .exec()
+        .then((members) => {
+            logger.info(`Get members. Method: ${req.method}, URL: ${req.url}.`);
             res.status(200).json(members);
+        })
+        .catch((err) => {
+            logger.warn(`Error getting members. Method: ${req.method}, URL: ${req.url}.`);
+            return res.status(400).json({ error: err });
         });
 };
 
 /*
  * @desc    Send notification by email to all active members
  * @route   PUT /members/send-notification
+ * @return  JSON object
  */
 exports.sendNotification = (req, res) => {
     const errors = validationResult(req);
@@ -220,22 +237,24 @@ exports.sendNotification = (req, res) => {
         html: `<p>${req.body.body}</p>`,
     };
 
-    Member.find({ endMembership: { $gte: new Date() } }, (err, members) => {
-        if (err) {
+    Member.find({ endMembership: { $gte: new Date() } })
+        .select("email")
+        .then((members) => {
+            const mailList = [];
+            members.forEach((member) => {
+                if (member.email) {
+                    mailList.push(member.email);
+                }
+            });
+            emailData.to = mailList;
+            sendEmail(emailData);
+            logger.info(`Notification has been sent. Method: ${req.method}, URL: ${req.url}.`);
+            return res.status(200).json({ message: "Success!" });
+        })
+        .catch((err) => {
             logger.warn(`Error getting active members. Method: ${req.method}, URL: ${req.url}.`);
             return res.status(400).json({ error: err });
-        }
-        const mailList = [];
-        members.forEach((member) => {
-            if (member.email) {
-                mailList.push(member.email);
-            }
         });
-        emailData.to = mailList;
-        sendEmail(emailData);
-        logger.info(`Notification has been sent. Method: ${req.method}, URL: ${req.url}.`);
-        res.status(200).json({ message: "Success!" });
-    }).select("email");
 };
 
 /*
@@ -249,29 +268,31 @@ exports.sendEmailEndMembership = () => {
         html: `<p></p>`,
     };
 
-    Member.find({ endMembership: { $gte: new Date() } }, (err, members) => {
-        if (err) {
-            logger.warn(`Error getting active members. Method: ${req.method}, URL: ${req.url}.`);
-            return res.status(400).json({ error: err });
-        }
-        members.forEach((member) => {
-            if (daysDiff(new Date(), member.endMembership) === 7) {
-                if (member.email) {
-                    emailData.text = `Dear ${member.name} ${member.lastName} your membership ends in 7 days, in ${member.endMembership}`;
-                    emailData.html = `<p>${emailData.text}</p>`;
-                    emailData.to = member.email;
-                    logger.info(`Notification end membership has been sent. Method: ${req.method}, URL: ${req.url}.`);
-                    sendEmail(emailData);
+    Member.find({ endMembership: { $gte: new Date() } })
+        .select("name lastName endMembership email")
+        .then((members) => {
+            members.forEach((member) => {
+                if (daysDiff(new Date(), member.endMembership) === 7) {
+                    if (member.email) {
+                        emailData.text = `Dear ${member.name} ${member.lastName} your membership ends in 7 days, on ${member.endMembership}`;
+                        emailData.html = `<p>${emailData.text}</p>`;
+                        emailData.to = member.email;
+                        logger.info(`Notification end membership has been sent. Method: Cron task.`);
+                        sendEmail(emailData);
+                    }
                 }
-            }
+            });
+        }).catch((err) => {
+            logger.warn(`Error getting active members. Method: Cron task.`);
+            return res.status(400).json({ error: err });
         });
-    }).select("name lastName endMembership email");
 };
 
 /*
  * @desc    Set assistance to member
  * @route   PUT /members/assistance
  ! Member must be active and on time to get assistance.
+ * @return  JSON object
 */
 exports.setAssistance = (req, res) => {
     const errors = validationResult(req);
@@ -284,8 +305,9 @@ exports.setAssistance = (req, res) => {
         .populate("payments", "membership")
         .populate("membership", "membership specialHours")
         .populate("payments.membership", "_id membership")
-        .exec(async (err, member) => {
-            if (err || !member) {
+        .exec()
+        .then(async (member) => {
+            if (!member) {
                 logger.warn(`Member not found. Method: ${req.method}, URL: ${req.url}.`);
                 return res.status(404).json({ error: "Member not found" });
             }
@@ -300,18 +322,23 @@ exports.setAssistance = (req, res) => {
                     return res.status(400).json({ error: "User out of schedule." });
                 }
                 member.assistances.push(Date.now());
-                member.save((err, member) => {
-                    if (err) {
-                        logger.warn(`User could not be saved. Method: ${req.method}, URL: ${req.url}.`);
+                member.save()
+                    .then((member) => {
+                        logger.info(`Set assistance to member. Method: ${req.method}, URL: ${req.url}.`);
+                        return res.status(200).json(member);
+                    })
+                    .catch((err) => {
+                        logger.warn(`Error setting assistance. Method: ${req.method}, URL: ${req.url}.`);
                         return res.status(400).json({ error: err });
-                    }
-                    logger.info(`Set assistance to member. Method: ${req.method}, URL: ${req.url}.`);
-                    res.status(200).json(member);
-                });
+                    });
             } else {
                 logger.warn(`User has no active membership. Method: ${req.method}, URL: ${req.url}.`);
                 return res.status(400).json({ error: "User has no active membership" });
             }
+        })
+        .catch((err) => {
+            logger.warn(`Error getting member. Method: ${req.method}, URL: ${req.url}.`);
+            return res.status(400).json({ error: err });
         });
 };
 
@@ -319,6 +346,7 @@ exports.setAssistance = (req, res) => {
  * @desc    Set assistance to member
  * @route   PUT /members/assistance
  ? Members can pay even if their memberships has not ended.
+ * @return  JSON object
 */
 exports.payMembership = (req, res) => {
     const errors = validationResult(req);
@@ -331,8 +359,9 @@ exports.payMembership = (req, res) => {
         .populate("payments", "membership")
         .populate("membership", "membership")
         .populate("payments.membership", "_id membership")
-        .exec(async (err, member) => {
-            if (err || !member) {
+        .exec()
+        .then(async (member) => {
+            if (!member) {
                 logger.warn(`Member not found. Method: ${req.method}, URL: ${req.url}.`);
                 return res.status(404).json({ error: "Member not found" });
             }
@@ -357,36 +386,39 @@ exports.payMembership = (req, res) => {
                 from: process.env.EMAIL_ADDRESS,
                 to: member.email,
                 subject: "{memberships_place} Receipt",
-                text: `You have paid ${
-                    membership.membership
-                } which ends on ${member.endMembership.toUTCString()}`,
-                html: `<p>You have paid ${
-                    membership.membership
-                } which ends on ${member.endMembership.toUTCString()}</p>`,
+                text: `You have paid ${membership.membership
+                    } which ends on ${member.endMembership.toUTCString()}`,
+                html: `<p>You have paid ${membership.membership
+                    } which ends on ${member.endMembership.toUTCString()}</p>`,
             };
 
-            member.save((err, member) => {
-                if (err) {
+            member.save()
+                .then((member) => {
+                    let receipt = new Receipt({
+                        membership: membership.membership,
+                        price: membership.price,
+                        boughtBy: member,
+                        soldBy: new mongoose.mongo.ObjectId(req.body.userId),
+                        date: Date.now(),
+                    });
+                    receipt.save()
+                        .catch((err) => {
+                            logger.warn(`Receipt did not save. Method: ${req.method}, URL: ${req.url}.`);
+                            return res.status(400).json({ error: "Receipt did not save." });
+                        });
+                    logger.info(`Member paid a membership. Method: ${req.method}, URL: ${req.url}.`);
+                    sendEmail(emailData);
+                    return res.status(200).json(member);
+                })
+                .catch((err) => {
                     logger.warn(`Member could not be saved. Method: ${req.method}, URL: ${req.url}.`);
                     return res.status(400).json({ error: err });
-                }
-                let receipt = new Receipt({
-                    membership: membership.membership,
-                    price: membership.price,
-                    boughtBy: member,
-                    soldBy: new mongoose.mongo.ObjectId(req.body.userId),
-                    date: Date.now(),
                 });
-                receipt.save((err, result) => {
-                    if (err) {
-                        logger.warn(`Receipt did not save. Method: ${req.method}, URL: ${req.url}.`);
-                        return res.status(400).json({ error: "Receipt did not save." });
-                    }
-                });
-                logger.info(`Member paid a membership. Method: ${req.method}, URL: ${req.url}.`);
-                sendEmail(emailData);
-                res.status(200).json(member);
-            });
+
+        })
+        .catch((err) => {
+            logger.warn(`Error getting member. Method: ${req.method}, URL: ${req.url}.`);
+            return res.status(400).json({ error: err });
         });
 };
 
@@ -395,6 +427,7 @@ exports.payMembership = (req, res) => {
  * @route   PUT /members/:memberId
  TODO: Validate incoming form.
  ! Membership cannot be updated here.
+ * @return  JSON object
 */
 exports.updateMember = (req, res) => {
     let form = new formidable.IncomingForm();
@@ -421,14 +454,15 @@ exports.updateMember = (req, res) => {
             member.photo.data = fs.readFileSync(files.photo.filepath);
             member.photo.contentType = files.photo.mimetype;
         }
-        member.save((err, result) => {
-            if (err) {
+        member.save()
+            .then((result) => {
+                logger.info(`Member has been updated. Method: ${req.method}, URL: ${req.url}.`);
+                return res.status(200).json(member);
+            })
+            .catch((err) => {
                 logger.warn(`Member could not be updated. Method: ${req.method}, URL: ${req.url}.`);
                 return res.status(400).json({ error: err });
-            }
-            logger.info(`Member has been updated. Method: ${req.method}, URL: ${req.url}.`);
-            return res.status(200).json(member);
-        });
+            });
     });
 };
 
@@ -436,15 +470,17 @@ exports.updateMember = (req, res) => {
  * @desc    Remove a member
  * @route   DELETE /members/:memberId
  ? Members can be deleted even if their membership is active.
+ * @return  JSON object
 */
 exports.deleteMember = (req, res) => {
     let member = req.member;
-    member.remove((err, result) => {
-        if (err) {
+    member.deleteOne()
+        .then((result) => {
+            logger.info(`Member has been deleted. Method: ${req.method}, URL: ${req.url}.`);
+            return res.status(200).json({ message: "Member has been deleted successfully!" });
+        })
+        .catch((err) => {
             logger.warn(`Member could not be deleted. Method: ${req.method}, URL: ${req.url}.`);
             return res.status(400).json({ error: err });
-        }
-        logger.info(`Member has been deleted. Method: ${req.method}, URL: ${req.url}.`);
-        res.status(200).json({ message: "Member has been deleted successfully!" });
-    });
+        });
 };
