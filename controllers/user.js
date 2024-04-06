@@ -1,7 +1,7 @@
 const User = require('../models/user');
 const jwt = require("jsonwebtoken");
 const formidable = require('formidable');
-const {validationResult } = require('express-validator');
+const { validationResult } = require('express-validator');
 const fs = require('fs');
 const _ = require('lodash');
 const { sendEmail } = require("../helpers");
@@ -19,24 +19,31 @@ exports.userById = (req, res, next, id) => {
     }
 
     User.findById(id)
-        .exec((err, user) => {
-            if ((err) || !(user)) {
+        .exec()
+        .then((user) => {
+            if (!user) {
                 logger.warn(`User not found. Method: ${req.method}, URL: ${req.url}.`);
-                return res.status(400).json({ error: "User not found" });
+                return res.status(404).json({ error: "User not found" });
             }
             logger.info(`User found by id. Method: ${req.method}, URL: ${req.url}.`);
             req.profile = user;
             next();
+        })
+        .catch((err) => {
+            logger.warn(`Error getting user by id. Method: ${req.method}, URL: ${req.url}.`);
+            return res.status(400).json({ error: "User not found" });
         });
 };
 
 /*
  * @desc    Get user by id
  * @route   GET /users/:user:id
+ * @return  JSON object
 */
 exports.getUser = (req, res) => {
     req.profile.hashed_password = undefined;
     req.profile.salt = undefined;
+    req.profile.resetPasswordLink = undefined;
     logger.info(`Get user. Method: ${req.method}, URL: ${req.url}.`);
     return res.status(200).json(req.profile);
 };
@@ -44,6 +51,7 @@ exports.getUser = (req, res) => {
 /*
  * @desc    Get a user photo in other endpoint
  * @route   GET /users/photo/:userId
+ * @return  JSON object
 */
 exports.getUserPhoto = (req, res, next) => {
     if (req.profile.photo.data) {
@@ -58,22 +66,25 @@ exports.getUserPhoto = (req, res, next) => {
 /*
  * @desc    Get all users
  * @route   GET /users
+ * @return  JSON object
 */
 exports.getUsers = (req, res) => {
-    User.find((err, users) => {
-        if (err) {
+    User.find()
+        .select('name lastName email role createdAt')
+        .then((users) => {
+            logger.warn(`Get users. Method: ${req.method}, URL: ${req.url}.`);
+            return res.json(users);
+        }).catch((err) => {
             logger.warn(`Error getting users. Method: ${req.method}, URL: ${req.url}.`);
             return res.status(400).json({ error: err });
-        }
-        logger.warn(`Get users. Method: ${req.method}, URL: ${req.url}.`);
-        res.json(users);
-    }).select('name lastName email role createdAt');
+        });
 };
 
 /*
  * @desc    Sign up a receptionist user
  * @route   POST /users
  ! This endpoint does not sign up admin users
+ * @return  JSON object
 */
 exports.registerUser = async (req, res) => {
     const errors = validationResult(req)
@@ -81,20 +92,20 @@ exports.registerUser = async (req, res) => {
         logger.warn(`Photo could not be uploaded. Method: ${req.method}, URL: ${req.url}.`);
         return res.status(400).json({ error: errors.array().map(e => e.msg) })
     }
-    
-    const userExists = await User.findOne({email: req.body.email.toLowerCase() });
+
+    const userExists = await User.findOne({ email: req.body.email.toLowerCase() });
     if (userExists) {
         logger.warn(`Email taken. Method: ${req.method}, URL: ${req.url}.`);
         return res.status(403).json({
-			error: "Email is taken!",
-		});
+            error: "Email is taken!",
+        });
     }
     req.body.password = 'Memberships3';
     const user = await new User(req.body);
     user.email = req.body.email.toLowerCase();
     await user.save();
-    const token = jwt.sign({_id: user._id}, process.env.JWT_SECRET_KEY);
-    
+    const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET_KEY);
+
     const emailData = {
         from: process.env.EMAIL_ADDRESS,
         to: user.email,
@@ -102,39 +113,41 @@ exports.registerUser = async (req, res) => {
         text: `Please use the following link to set your password: ${process.env.CLIENT_URL}/reset-password/${token}`,
         html: `<p>Please use the following link to set your password:</p> <a href="${process.env.CLIENT_URL}/reset-password/${token}">${process.env.CLIENT_URL}/reset-password/${token}</a>`
     };
-        
-    user.updateOne({resetPasswordLink: token}, (err, success) => {
-        if (err) {
-            logger.warn(`Set reset password link failed. Method: ${req.method}, URL: ${req.url}.`);
-            return res.status(400).json({error: err});
-        } else {
+
+    user.updateOne({ resetPasswordLink: token })
+        .then((success) => {
             logger.info(`User has been registered. Method: ${req.method}, URL: ${req.url}.`);
             sendEmail(emailData);
-            return res.status(200).json({message: `Email has been sent to ${user.email}. Follow the instructions to set your password.`});
-        }
-    });
+            return res.status(200).json({ message: `Email has been sent to ${user.email}. Follow the instructions to set your password.` });
+        })
+        .catch((err) => {
+            logger.warn(`Set reset password link failed. Method: ${req.method}, URL: ${req.url}.`);
+            return res.status(400).json({ error: err });
+        });
 };
 
 /*
  * @desc    Update an user
  * @route   PUT /users/:userId
  TODO: Validate incoming form.
+ * @return  JSON object
 */
-exports.updateUser = (req, res) => {
-    let form = new formidable.IncomingForm();
+exports.updateUser = async (req, res) => {
+    const form = new formidable.IncomingForm();
     form.keepExtensions = true;
     form.parse(req, async (err, fields, files) => {
         if (err) {
             logger.warn(`Photo could not be uploaded. Method: ${req.method}, URL: ${req.url}.`);
-            return res.status(400).json({error: "Photo could not be uploaded."});
+            return res.status(400).json({ error: "Photo could not be uploaded." });
         }
         let user = req.profile;
+
         if (fields.email) {
-            const userExists = await User.findOne({'email': fields.email.toLowerCase()});
+            const userExists = await User.findOne({ 'email': fields.email.toLowerCase() });
             if (userExists) {
                 if (!(user._id.equals(userExists._id))) {
                     logger.warn(`Email taken. Method: ${req.method}, URL: ${req.url}.`);
-                    return res.status(400).json({error: 'Email is taken!'});
+                    return res.status(400).json({ error: 'Email is taken!' });
                 }
             }
         }
@@ -145,33 +158,37 @@ exports.updateUser = (req, res) => {
             user.photo.data = fs.readFileSync(files.photo.filepath);
             user.photo.contentType = files.photo.mimetype;
         }
-        user.save((err, result) => {
-            if (err) {
+        user.save()
+            .then((result) => {
+                user.hashed_password = undefined;
+                user.salt = undefined;
+                user.resetPasswordLink = undefined;
+                logger.info(`User has been updated. Method: ${req.method}, URL: ${req.url}.`);
+                return res.status(200).json(user);
+            })
+            .catch((err) => {
                 logger.warn(`User could not be updated. Method: ${req.method}, URL: ${req.url}.`);
-                return res.status(400).json({error: err});
-            }
-            user.hashed_password = undefined;
-            user.salt = undefined;
-            logger.info(`User has been updated. Method: ${req.method}, URL: ${req.url}.`);
-            return res.status(200).json(user);
-        });
+                return res.status(400).json({ error: err });
+            });
     });
 }
 
 /*
  * @desc    Delete an user
  * @route   DELETE /users/:userId
+ * @return  JSON object
 */
 exports.deleteUser = (req, res) => {
     let user = req.profile;
-    user.remove((err, user) => {
-        if (err) {
+    user.deleteOne()
+        .then((user) => {
+            logger.info(`User has been deleted. Method: ${req.method}, URL: ${req.url}.`);
+            res.json({ message: "User was deleted successfully!" });
+        })
+        .catch((err) => {
             logger.warn(`User could not be deleted. Method: ${req.method}, URL: ${req.url}.`);
             return res.status(400).json({ error: err });
-        }
-        logger.info(`User has been deleted. Method: ${req.method}, URL: ${req.url}.`);
-        res.json({ message: "User was deleted successfully!" });
-    });
+        });
 };
 
 /*
@@ -181,7 +198,7 @@ exports.hasAuthorization = (req, res, next) => {
     const isUserHimself = ((req.profile) && (req.auth) && (req.profile._id == req.auth._id));
     const isAdmin = ((req.profile) && (req.auth) && (req.auth.role === 'admin'));
     const isAuthorized = ((isUserHimself) || (isAdmin))
-    
+
     if (!isAuthorized) {
         return res.status(403).json({ error: "User is not authorized to perform this action" });
     }
