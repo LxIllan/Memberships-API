@@ -131,7 +131,7 @@ exports.registerMember = async (req, res) => {
         member.payments = [{ date: Date.now(), membership: membership }];
 
         const emailData = {
-            from: process.env.EMAIL_ADDRESS,
+            from: process.env.MAIL_USERNAME,
             to: member.email,
             subject: "Welcome to {memberships_place}",
             text: `Welcome to {memberships_place} you have paid ${membership.membership} which ends on ${member.endMembership}`,
@@ -231,7 +231,7 @@ exports.sendNotification = (req, res) => {
     }
 
     const emailData = {
-        from: process.env.EMAIL_ADDRESS,
+        from: process.env.MAIL_USERNAME,
         subject: req.body.subject,
         text: req.body.body,
         html: `<p>${req.body.body}</p>`,
@@ -262,7 +262,7 @@ exports.sendNotification = (req, res) => {
  */
 exports.sendEmailEndMembership = () => {
     const emailData = {
-        from: process.env.EMAIL_ADDRESS,
+        from: process.env.MAIL_USERNAME,
         subject: "Your membership ends in 7 days",
         text: "",
         html: `<p></p>`,
@@ -383,7 +383,7 @@ exports.payMembership = (req, res) => {
             member.payments.push({ date: Date.now(), membership });
 
             const emailData = {
-                from: process.env.EMAIL_ADDRESS,
+                from: process.env.MAIL_USERNAME,
                 to: member.email,
                 subject: "{memberships_place} Receipt",
                 text: `You have paid ${membership.membership
