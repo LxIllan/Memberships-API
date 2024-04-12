@@ -284,7 +284,6 @@ exports.sendEmailEndMembership = () => {
             });
         }).catch((err) => {
             logger.warn(`Error getting active members. Method: Cron task.`);
-            return res.status(400).json({ error: err });
         });
 };
 
