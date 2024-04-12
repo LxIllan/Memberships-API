@@ -1,11 +1,12 @@
 const User = require('../models/user');
-const jwt = require("jsonwebtoken");
-const formidable = require('formidable');
-const { validationResult } = require('express-validator');
-const fs = require('fs');
 const _ = require('lodash');
-const { sendEmail } = require("../helpers");
+const formidable = require('formidable');
+const fs = require('fs');
+const jwt = require("jsonwebtoken");
 const logger = require("../config/logger");
+const { sendEmail } = require("../helpers");
+const { validationResult } = require('express-validator');
+
 require("dotenv").config();
 
 /*

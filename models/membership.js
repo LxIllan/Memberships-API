@@ -1,12 +1,12 @@
 const mongoose = require('mongoose');
 
 const membershipSchema = mongoose.Schema({
-    membership : {
+    membership: {
         type: String,
         trim: true,
         required: true
     },
-    months : Number,
+    months: Number,
     weeks: Number,
     price: {
         type: Number,

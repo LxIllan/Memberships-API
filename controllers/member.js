@@ -1,14 +1,14 @@
 const Member = require("../models/member");
-const Receipt = require("../models/receipt");
-const formidable = require("formidable");
-const _ = require("lodash");
-const { validationResult } = require("express-validator");
-const fs = require("fs");
-const { sendEmail, createCode } = require("../helpers/index");
-const { addTimeToDate, isMemberActive, daysDiff, isMemberOnSchedule } = require("../helpers/dates");
 const Membership = require("../models/membership");
-const mongoose = require("mongoose");
+const Receipt = require("../models/receipt");
+const _ = require("lodash");
+const formidable = require("formidable");
+const fs = require("fs");
 const logger = require('../config/logger');
+const mongoose = require("mongoose");
+const { addTimeToDate, isMemberActive, daysDiff, isMemberOnSchedule } = require("../helpers/dates");
+const { sendEmail, createCode } = require("../helpers/index");
+const { validationResult } = require("express-validator");
 
 /*
  * @desc    Get a member by id, every time param '/:memberId' is called

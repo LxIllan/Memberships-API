@@ -1,8 +1,7 @@
-const express = require("express");
-const receiptsController = require("../controllers/receipt");
-const userController = require("../controllers/user");
 const authController = require("../controllers/auth");
+const express = require("express");
 const receiptValidator = require("../validators/receipt");
+const receiptsController = require("../controllers/receipt");
 
 const router = express.Router();
 

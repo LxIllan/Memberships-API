@@ -1,10 +1,11 @@
-const jwt = require("jsonwebtoken");
-const { expressjwt } = require("express-jwt");
 const User = require("../models/user");
-const { validationResult } = require('express-validator');
-const { sendEmail } = require('../helpers');
 const _ = require("lodash");
+const jwt = require("jsonwebtoken");
 const logger = require('../config/logger');
+const { expressjwt } = require("express-jwt");
+const { sendEmail } = require('../helpers');
+const { validationResult } = require('express-validator');
+
 require("dotenv").config();
 
 /*

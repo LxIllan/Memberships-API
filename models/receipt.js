@@ -4,11 +4,11 @@ const { ObjectId } = mongoose.Schema;
 const receiptSchema = new mongoose.Schema({
     membership: String,
     price: Number,
-    boughtBy: { 
+    boughtBy: {
         type: ObjectId,
         ref: 'Member'
     },
-    soldBy: { 
+    soldBy: {
         type: ObjectId,
         ref: 'User'
     },

@@ -1,4 +1,4 @@
-const { query, param } = require("express-validator");
+const { param, query } = require("express-validator");
 
 const pagination = [
     query("page", "Page must be a number.").isNumeric().optional().toInt(),

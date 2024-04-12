@@ -1,7 +1,7 @@
 const Membership = require("../models/membership");
-const { validationResult } = require("express-validator");
 const logger = require("../config/logger");
-const { _ } = require("lodash");
+const _ = require("lodash");
+const { validationResult } = require("express-validator");
 
 /*
  * @desc    Get a member by id, every time param '/:membershipId' is called

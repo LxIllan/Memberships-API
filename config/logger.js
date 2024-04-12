@@ -1,8 +1,8 @@
-const { createLogger, transports, format } = require('winston')
+const { createLogger, format, transports } = require('winston')
 
-const loggerFormat = format.combine(format.timestamp({format: 'YYYY-MM-DD HH:mm:ss'}), format.printf((log) => {
+const loggerFormat = format.combine(format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), format.printf((log) => {
     return `${log.timestamp} [${log.level.toUpperCase()}] ${log.message}`
-}))
+}));
 
 const logger = createLogger({
     format: loggerFormat,

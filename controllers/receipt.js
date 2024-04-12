@@ -1,7 +1,7 @@
 const Receipt = require("../models/receipt");
 const logger = require("../config/logger");
-const { validationResult } = require("express-validator");
 const { strDateToStartEndDate } = require("../helpers/dates");
+const { validationResult } = require("express-validator");
 
 /*
  * @desc    Get receipts by anything
