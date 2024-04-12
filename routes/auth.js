@@ -9,8 +9,8 @@ router.post("/signin", authValidator.singIn, authController.signIn);
 router.get("/signout", authController.requireSignIn, authController.signOut);
 router.post(
     "/signup",
-    authController.requireSignIn,
-    userController.isAdmin,
+    authController.requireSignIn, // Comment this line to sign up the first admin
+    userController.isAdmin, // Comment this line to sign up the first admin
     authValidator.signUp,
     authController.signUp
 );
