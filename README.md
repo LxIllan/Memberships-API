@@ -29,7 +29,7 @@ npm start
 ```json
 {
 	"email": "Fernando.Illan@syss.tech",
-	"password": "_f4Illan"
+	"password": "Test123*"
 }
 ```
 
@@ -60,7 +60,7 @@ npm start
 	"name": "Test",
 	"lastName": "Last",
 	"email": "test@syss.tech",
-	"password": "test1"
+	"password": "Test123*"
 }
 ```
 
@@ -264,7 +264,7 @@ npm start
 	"name": "Test",
 	"lastName": "Last",
 	"email": "test@syss.tech",
-	"password": "test1"
+	"password": "Test123*"
 }
 ```
 
