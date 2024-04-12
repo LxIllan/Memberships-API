@@ -1,6 +1,6 @@
 const Receipt = require("../models/receipt");
 const logger = require("../config/logger");
-const { strDateToStartEndDate } = require("../helpers/dates");
+const { strDateToStartEndDatesObject } = require("../helpers/dates");
 const { validationResult } = require("express-validator");
 
 /*
@@ -31,7 +31,7 @@ exports.getReceipts = async (req, res) => {
         return res.status(400).json({ error: errors.array().map((e) => e.msg) });
     }
 
-    const date = strDateToStartEndDate(req.query.date);
+    const date = strDateToStartEndDatesObject(req.query.date);
     const find = { date: { $gte: date.start, $lt: date.end } };
     const receipts = await getReceiptsByX(find, req.query);
 
