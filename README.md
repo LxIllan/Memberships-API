@@ -257,17 +257,6 @@ npm start
 > localhost:3001/members/6604af623db94222419fa707
 > ```
 
-##### Body (**json**)
-
-```json
-{
-	"name": "Test",
-	"lastName": "Last",
-	"email": "test@syss.tech",
-	"password": "Test123*"
-}
-```
-
 ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃
 
 ### 📁 Collection: Membership
