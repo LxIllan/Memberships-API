@@ -4,7 +4,7 @@ const formidable = require('formidable');
 const fs = require('fs');
 const jwt = require("jsonwebtoken");
 const logger = require("../config/logger");
-const { sendEmail } = require("../helpers");
+const { sendEmail } = require("../helpers/index");
 const { validationResult } = require('express-validator');
 
 require("dotenv").config();
