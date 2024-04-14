@@ -1,6 +1,6 @@
+const crypto = require('crypto');
 const mongoose = require('mongoose');
 const uuidv1 = require('uuidv1');
-const crypto = require('crypto');
 
 const userSchema = mongoose.Schema({
     name: {
@@ -41,7 +41,7 @@ const userSchema = mongoose.Schema({
 
 // Virtual field
 userSchema.virtual('password')
-    .set(function(password) {
+    .set(function (password) {
         // Create temporary variable called password
         this._password = password;
         // generate a timestamp
@@ -52,10 +52,10 @@ userSchema.virtual('password')
     .get(() => this._password);
 
 userSchema.methods = {
-    authenticate: function(passwordPlainText) {
+    authenticate: function (passwordPlainText) {
         return this.encryptPassword(passwordPlainText) === this.hashed_password;
     },
-    encryptPassword: function(password) {
+    encryptPassword: function (password) {
         if (!password) return "";
         try {
             return crypto.createHmac('sha1', this.salt)

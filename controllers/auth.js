@@ -1,10 +1,11 @@
-const jwt = require("jsonwebtoken");
-const { expressjwt } = require("express-jwt");
 const User = require("../models/user");
-const { validationResult } = require('express-validator');
-const { sendEmail } = require('../helpers');
 const _ = require("lodash");
+const jwt = require("jsonwebtoken");
 const logger = require('../config/logger');
+const { expressjwt } = require("express-jwt");
+const { sendEmail } = require('../helpers/index');
+const { validationResult } = require('express-validator');
+
 require("dotenv").config();
 
 /*
@@ -123,7 +124,7 @@ exports.forgotPassword = (req, res) => {
 
         // email data
         const emailData = {
-            from: process.env.EMAIL_ADDRESS,
+            from: process.env.MAIL_USERNAME,
             to: email,
             subject: "Password Reset Instructions",
             text: `Please use the following link to reset your password: ${process.env.CLIENT_URL}/reset-password/${token}`,

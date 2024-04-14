@@ -1,4 +1,4 @@
-const { body, check } = require("express-validator");
+const { check, body } = require("express-validator");
 
 /*
  * @route   POST /users

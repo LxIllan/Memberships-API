@@ -7,14 +7,14 @@ exports.getMembers = [
     query('page', 'Page must be a number.').isNumeric().optional().toInt(),
     query('limit', 'Limit must be a number.').isNumeric().optional().toInt(),
     query('name', 'Name must have only letters.').matches(/^[a-zA-Z]+$/).optional()
-]
+];
 
 /*
  * @route   GET /members/code/:code
 */
 exports.getMemberByCode = [
     param('code', 'Code must be a four digit code.').matches(/^\d{4}$/)
-]
+];
 
 /*
  * @route   PUT /members/send-notification

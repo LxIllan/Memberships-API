@@ -1,0 +1,1138 @@
+{
+	"info": {
+		"_postman_id": "66dfaa5b-d9bb-4ed0-a216-e1c0baf63bb9",
+		"name": "Memberships API",
+		"description": "It's a REST API that manages memberships. It has two types of users: receptionists and administrators. It controls who makes sales, registers memberships, etc. Memberships can have time restrictions. It is possible to send notifications to members, notifying them that their membership ends in a few days, and it is also possible to send them general notices. It was designed for a gym, but can also be used by personal trainers and anyone who needs to manage client memberships.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20470085"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Sign in",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"Fernando.Illan@syss.tech\",\r\n    \"password\": \"Test123**\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3001/signin",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"signin"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sign out",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3001/signout",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"signout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sign up",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Test\",\r\n    \"lastName\": \"Last\",\r\n    \"email\": \"test@syss.tech\",\r\n    \"password\": \"test1\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3001/signup",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"signup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Forgot password",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"Test@syss.tech\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3001/forgot-password",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"forgot-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reset password",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"newPassword\": \"Test123**\",\r\n    \"resetPasswordLink\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NjAzMzJmNWI1OTg4NDg1MjBmMmYxNTkiLCJpc3MiOiJNRU1CRVJTSElQU0FQSSIsImlhdCI6MTcxMjE4ODUxOX0.J2deBYrG-QtnAXkOmt0uyykT4BBSlM4pipyJo0BFLhA\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3001/reset-password",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"reset-password"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Member",
+			"item": [
+				{
+					"name": "Photo",
+					"item": [
+						{
+							"name": "Get photo by id",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "localhost:3001/members/photo/66108cb880155e2d682f4230",
+									"host": [
+										"localhost"
+									],
+									"port": "3001",
+									"path": [
+										"members",
+										"photo",
+										"66108cb880155e2d682f4230"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "All",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3001/members?page=1&limit=10&name=Fernando",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"members"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "name",
+									"value": "Fernando"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "Pueba",
+									"type": "text"
+								},
+								{
+									"key": "lastName",
+									"value": "Test",
+									"type": "text"
+								},
+								{
+									"key": "membership",
+									"value": "6604aee03db94222419fa702",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "Test4@syss.tech",
+									"type": "text"
+								},
+								{
+									"key": "userId",
+									"value": "66032ba66be112905e1074c9",
+									"description": "User registering this member.",
+									"type": "text"
+								},
+								{
+									"key": "photo",
+									"type": "file",
+									"src": "/C:/Users/lfillan/Pictures/Image.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "localhost:3001/members",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"members"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Set assistance",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"memberId\": \"6604af623db94222419fa707\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3001/members/assistance",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"members",
+								"assistance"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Pay membership",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"memberId\": \"6604af623db94222419fa707\",\r\n    \"userId\": \"66032ba66be112905e1074c9\",\r\n    \"membership\": \"6604aee03db94222419fa702\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3001/members/pay-membership",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"members",
+								"pay-membership"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Send notification",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"subject\": \"Subject message.\",\r\n    \"body\": \"Body message.\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3001/members/send-notification",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"members",
+								"send-notification"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get by id",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3001/members/66108cb880155e2d682f4230",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"members",
+								"66108cb880155e2d682f4230"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get by code",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3001/members/code/5590",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"members",
+								"code",
+								"5590"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Edit by id",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "Test",
+									"type": "text"
+								},
+								{
+									"key": "lastName",
+									"value": "Test",
+									"type": "text"
+								},
+								{
+									"key": "photo",
+									"type": "file",
+									"src": "/C:/Users/lfillan/Pictures/Image.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "localhost:3001/members/6604af623db94222419fa707",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"members",
+								"6604af623db94222419fa707"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete by id",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3001/members/6604af623db94222419fa707",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"members",
+								"6604af623db94222419fa707"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Membership",
+			"item": [
+				{
+					"name": "All",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3001/memberships",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"memberships"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"membership\": \"Monthly\",\r\n    \"price\": 100,\r\n    \"months\": 1,\r\n    \"weeks\": 0,\r\n    \"specialHours\": {\r\n        \"startHour\": 0,\r\n        \"endHour\": 0\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3001/memberships",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"memberships"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get by id",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3001/memberships/6604aee03db94222419fa702",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"memberships",
+								"6604aee03db94222419fa702"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Edit by id",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"membership\": \"Monthly\",\r\n    \"price\": 601,\r\n    \"months\": 1,\r\n    \"weeks\": 0\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3001/memberships/6604aee03db94222419fa702",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"memberships",
+								"6604aee03db94222419fa702"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete by id",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3001/memberships/660f133eae9609431d6e80b4",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"memberships",
+								"660f133eae9609431d6e80b4"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Property",
+			"item": [
+				{
+					"name": "All",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3001/properties",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"properties"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"S Memberships\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3001/properties",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"properties"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get by name",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3001/properties/name",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"properties",
+								"name"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete by name",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3001/properties/codes",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"properties",
+								"codes"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Receipt",
+			"item": [
+				{
+					"name": "All",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3001/receipts?date=2024-04-03",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"receipts"
+							],
+							"query": [
+								{
+									"key": "date",
+									"value": "2024-04-03"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "All by user",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3001/receipts/user/66032ba66be112905e1074c9",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"receipts",
+								"user",
+								"66032ba66be112905e1074c9"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "All by member",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3001/receipts/member/660d8a7d98acf039892dca01",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"receipts",
+								"member",
+								"660d8a7d98acf039892dca01"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "Photo",
+					"item": [
+						{
+							"name": "Get photo by id",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "localhost:3001/users/photo/660332f5b598848520f2f159",
+									"host": [
+										"localhost"
+									],
+									"port": "3001",
+									"path": [
+										"users",
+										"photo",
+										"660332f5b598848520f2f159"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "All",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3001/users",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "Fernando",
+									"type": "text"
+								},
+								{
+									"key": "lastName",
+									"value": "Illan",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "Fernando.Illan@syss.tech",
+									"type": "text"
+								},
+								{
+									"key": "photo",
+									"type": "file",
+									"src": "/C:/Users/lfillan/Pictures/Image.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "localhost:3001/users",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get by id",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3001/users/66032ba66be112905e1074c9",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"users",
+								"66032ba66be112905e1074c9"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Edit by id",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "Test",
+									"type": "text"
+								},
+								{
+									"key": "lastName",
+									"value": "Last 2",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "test@syss.tech",
+									"type": "text"
+								},
+								{
+									"key": "test",
+									"value": "test",
+									"type": "text"
+								},
+								{
+									"key": "photo",
+									"type": "file",
+									"src": "/C:/Users/lfillan/Pictures/Image.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "localhost:3001/users/660332f5b598848520f2f159",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"users",
+								"660332f5b598848520f2f159"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete by id",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3001/users/660332f5b598848520f2f159",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"users",
+								"660332f5b598848520f2f159"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NjAzMmJhNjZiZTExMjkwNWUxMDc0YzkiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3MTIxODMyNzR9.Yupzhxsl824u5bMlEh1ftRDbBQ-Y5adNJAgnzoopj-4",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

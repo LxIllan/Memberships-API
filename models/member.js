@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const {ObjectId} = mongoose.Schema;
+const { ObjectId } = mongoose.Schema;
 
 const memberSchema = mongoose.Schema({
     code: String,
@@ -21,16 +21,16 @@ const memberSchema = mongoose.Schema({
         type: String,
         trim: true
     },
-    membership : {
+    membership: {
         type: ObjectId,
         ref: 'Membership'
     },
     endMembership: Date,
-    assistances: [{type: Date}],
+    attendances: [{ type: Date }],
     payments: [
         {
-            date: {type: Date, default: Date.now},
-            membership : {type: ObjectId, ref: 'Membership'}
+            date: { type: Date, default: Date.now },
+            membership: { type: ObjectId, ref: 'Membership' }
         }
     ]
 }, {

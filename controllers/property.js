@@ -1,7 +1,7 @@
 const PropertiesReader = require("properties-reader");
-const { resolve } = require("path");
 const fs = require("fs");
 const logger = require('../config/logger');
+const { resolve } = require("path");
 const propertiesPath = resolve(__dirname + "/../config/memberships.properties");
 
 /*

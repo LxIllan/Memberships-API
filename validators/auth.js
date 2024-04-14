@@ -32,7 +32,7 @@ exports.singIn = [
  * @route   PUT /forgot-password
 */
 exports.forgotPassword = [
-    body("email", "Email must be a valid email.").isEmail().toLowerCase()   
+    body("email", "Email must be a valid email.").isEmail().toLowerCase()
 ];
 
 

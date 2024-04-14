@@ -1,5 +1,5 @@
-const express = require("express");
 const authController = require("../controllers/auth");
+const express = require("express");
 const membershipController = require("../controllers/membership");
 const membershipValidator = require("../validators/membership");
 

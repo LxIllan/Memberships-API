@@ -1,14 +1,14 @@
 const Member = require("../models/member");
-const Receipt = require("../models/receipt");
-const formidable = require("formidable");
-const _ = require("lodash");
-const { validationResult } = require("express-validator");
-const fs = require("fs");
-const { sendEmail, createCode } = require("../helpers/index");
-const { addTimeToDate, isMemberActive, daysDiff, isMemberOnSchedule } = require("../helpers/dates");
 const Membership = require("../models/membership");
-const mongoose = require("mongoose");
+const Receipt = require("../models/receipt");
+const _ = require("lodash");
+const formidable = require("formidable");
+const fs = require("fs");
 const logger = require('../config/logger');
+const mongoose = require("mongoose");
+const { addTimeToDate, isMemberActive, daysDiff, isMemberOnSchedule } = require("../helpers/dates");
+const { sendEmail, createCode } = require("../helpers/index");
+const { validationResult } = require("express-validator");
 
 /*
  * @desc    Get a member by id, every time param '/:memberId' is called
@@ -131,7 +131,7 @@ exports.registerMember = async (req, res) => {
         member.payments = [{ date: Date.now(), membership: membership }];
 
         const emailData = {
-            from: process.env.EMAIL_ADDRESS,
+            from: process.env.MAIL_USERNAME,
             to: member.email,
             subject: "Welcome to {memberships_place}",
             text: `Welcome to {memberships_place} you have paid ${membership.membership} which ends on ${member.endMembership}`,
@@ -231,7 +231,7 @@ exports.sendNotification = (req, res) => {
     }
 
     const emailData = {
-        from: process.env.EMAIL_ADDRESS,
+        from: process.env.MAIL_USERNAME,
         subject: req.body.subject,
         text: req.body.body,
         html: `<p>${req.body.body}</p>`,
@@ -262,7 +262,7 @@ exports.sendNotification = (req, res) => {
  */
 exports.sendEmailEndMembership = () => {
     const emailData = {
-        from: process.env.EMAIL_ADDRESS,
+        from: process.env.MAIL_USERNAME,
         subject: "Your membership ends in 7 days",
         text: "",
         html: `<p></p>`,
@@ -284,7 +284,6 @@ exports.sendEmailEndMembership = () => {
             });
         }).catch((err) => {
             logger.warn(`Error getting active members. Method: Cron task.`);
-            return res.status(400).json({ error: err });
         });
 };
 
@@ -321,7 +320,7 @@ exports.setAssistance = (req, res) => {
                     logger.warn(`User out of schedule. Method: ${req.method}, URL: ${req.url}.`);
                     return res.status(400).json({ error: "User out of schedule." });
                 }
-                member.assistances.push(Date.now());
+                member.attendances.push(Date.now());
                 member.save()
                     .then((member) => {
                         logger.info(`Set assistance to member. Method: ${req.method}, URL: ${req.url}.`);
@@ -383,7 +382,7 @@ exports.payMembership = (req, res) => {
             member.payments.push({ date: Date.now(), membership });
 
             const emailData = {
-                from: process.env.EMAIL_ADDRESS,
+                from: process.env.MAIL_USERNAME,
                 to: member.email,
                 subject: "{memberships_place} Receipt",
                 text: `You have paid ${membership.membership

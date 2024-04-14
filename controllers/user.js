@@ -1,11 +1,12 @@
 const User = require('../models/user');
-const jwt = require("jsonwebtoken");
-const formidable = require('formidable');
-const { validationResult } = require('express-validator');
-const fs = require('fs');
 const _ = require('lodash');
-const { sendEmail } = require("../helpers");
+const formidable = require('formidable');
+const fs = require('fs');
+const jwt = require("jsonwebtoken");
 const logger = require("../config/logger");
+const { sendEmail } = require("../helpers/index");
+const { validationResult } = require('express-validator');
+
 require("dotenv").config();
 
 /*
@@ -107,7 +108,7 @@ exports.registerUser = async (req, res) => {
     const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET_KEY);
 
     const emailData = {
-        from: process.env.EMAIL_ADDRESS,
+        from: process.env.MAIL_USERNAME,
         to: user.email,
         subject: "Memberships Log In instructions",
         text: `Please use the following link to set your password: ${process.env.CLIENT_URL}/reset-password/${token}`,

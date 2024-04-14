@@ -1,20 +1,22 @@
-const nodeMailer = require("nodemailer");
 const logger = require("../config/logger");
+const nodeMailer = require("nodemailer");
+
 require("dotenv").config();
 
 /*
  * @desc    Sends email to the specified email addresses.
  * @param {object} emailData - Object that contains subject, body and email addresses.
+ * @return {Promise} - Promise object represents the email sent.
 */
 exports.sendEmail = (emailData) => {
     const transporter = nodeMailer.createTransport({
-        host: process.env.EMAIL_HOST,
-        port: process.env.EMAIL_PORT,
+        host: process.env.MAIL_HOST,
+        port: process.env.MAIL_PORT,
         secure: true,
         requireTLS: true,
         auth: {
-            user: process.env.EMAIL_ADDRESS,
-            pass: process.env.EMAIL_PASSWORD,
+            user: process.env.MAIL_USERNAME,
+            pass: process.env.MAIL_PASSWORD,
         },
     });
     return transporter
@@ -26,11 +28,6 @@ exports.sendEmail = (emailData) => {
 /*
  * @desc    Creates an unique code to members.
  ? Code is four random numbers.
+* @return {string} - Unique code.
 */
-exports.createCode = () => {
-    let code = '';
-    for (let i = 0; i < 4; i++) {
-        code += Math.floor(Math.random() * 10) + '';
-    }
-    return code;
-}
+exports.createCode = () => Array.from({ length: 4 }, () => Math.floor(Math.random() * 10)).join('');
