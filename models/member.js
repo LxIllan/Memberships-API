@@ -26,7 +26,7 @@ const memberSchema = mongoose.Schema({
         ref: 'Membership'
     },
     endMembership: Date,
-    assistances: [{ type: Date }],
+    attendances: [{ type: Date }],
     payments: [
         {
             date: { type: Date, default: Date.now },

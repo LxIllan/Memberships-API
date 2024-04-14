@@ -320,7 +320,7 @@ exports.setAssistance = (req, res) => {
                     logger.warn(`User out of schedule. Method: ${req.method}, URL: ${req.url}.`);
                     return res.status(400).json({ error: "User out of schedule." });
                 }
-                member.assistances.push(Date.now());
+                member.attendances.push(Date.now());
                 member.save()
                     .then((member) => {
                         logger.info(`Set assistance to member. Method: ${req.method}, URL: ${req.url}.`);
